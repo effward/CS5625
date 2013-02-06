@@ -1,0 +1,27 @@
+/**
+ * material_isotropic_ward.vp
+ * 
+ * Vertex shader shader which writes material information needed for Isotropic Ward shading to
+ * the gbuffer.
+ * 
+ * Written for Cornell CS 5625 (Interactive Computer Graphics).
+ * Copyright (c) 2012, Computer Science Department, Cornell University.
+ * 
+ * @author Asher Dunn (ad488), Sean Ryan (ser99), Ivo Boyadzhiev (iib2)
+ * @date 2013-01-30
+ */
+
+/* Pass eyespace position, normal, texcoord, tangent and bitangent vectors to the fragment shader. */
+varying vec3 EyespacePosition;
+varying vec3 EyespaceNormal;
+varying vec2 TexCoord;
+
+void main()
+{
+	/* Standard vertex transform. */
+	gl_Position = ftransform();
+	
+	// TODO PA1: Transform stuff into eye space and store in varyings.
+	EyespacePosition = EyespaceNormal = vec3(1.0);
+	TexCoord = vec2(1.0);
+}
