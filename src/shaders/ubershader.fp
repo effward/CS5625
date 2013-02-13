@@ -212,7 +212,7 @@ void main()
 	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 
 	/* Branch on material ID and shade as appropriate. */
-	int materialID = int(materialParams1.x);
+	int materialID = int(abs(materialParams1.x));
 
 	if (materialID == 0)
 	{
@@ -226,11 +226,32 @@ void main()
 	}
 	// TODO PA1: Add logic to handle all other material IDs. Remember to loop over all NumLights.
 	
-	
-	
-	else
+	for(int i = 0; i < NumLights; i++)
 	{
-		/* Unknown material, so just use the diffuse color. */
-		gl_FragColor.rgb = diffuse;
+		lightPosition = LightPositions[i];
+		lightColor = LightColors[i];
+		lightAttenuation = LightAttenuations[i];
+		
+		if (materialID == ISOTROPIC_WARD_MATERIAL_ID)
+		{
+			vec3 specular = materialParams1.yzw;
+			float alpha = float(materialParams2.x);
+			shadeIsotropicWard(diffuse, specular, alpha, position, normal, lightPosition, lightColor, lightAttenuation);
+		}
+		else if (materialID == ANISOTROPIC_WARD_MATERIAL_ID)
+		{
+			vec3 specular = materialParams1.yzw;
+			float alphaX = float(materialParams2.x);
+			float alphaY = float(materialParams2.y);
+			vec3 tangent = decode(materialParams.zw);
+			float bitangent_sign = materialParams1.x / abs(materialParams1.x);
+			vec3 bitangent = normalize(cross(normal, tangent) * bitangent_sign);
+			shadeAnisotropicWard(diffuse, specular, alphaX, alphaY, position, normal, tangent, bitangent, lightPosition, lightColor, lightAttenuation);
+		}
+		else
+		{
+			/* Unknown material, so just use the diffuse color. */
+			gl_FragColor.rgb = diffuse;
+		}
 	}
 }
