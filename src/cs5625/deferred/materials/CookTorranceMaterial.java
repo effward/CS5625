@@ -144,6 +144,19 @@ public class CookTorranceMaterial extends Material
 		getShaderProgram().bind(gl);
 		
 		// TODO PA1: Set shader uniforms and bind any textures.
+		if (mDiffuseTexture != null) mDiffuseTexture.bind(gl, 0);
+		if (mSpecularTexture != null) mSpecularTexture.bind(gl, 1);
+		if (mMTexture != null) mMTexture.bind(gl, 2);
+		if (mNTexture != null) mNTexture.bind(gl, 3);
+		
+		gl.glUniform3f(mDiffuseUniformLocation, mDiffuseColor.x, mDiffuseColor.y, mDiffuseColor.z);
+		gl.glUniform3f(mSpecularUniformLocation, mSpecularColor.x, mSpecularColor.y, mSpecularColor.z);
+		gl.glUniform1f(mMUniformLocation, mMVal);
+		gl.glUniform1f(mNUniformLocation, mNVal);
+		gl.glUniform1i(mHasDiffuseTextureUniformLocation, (mDiffuseTexture == null ? 0 : 1));
+		gl.glUniform1i(mHasSpecularTextureUniformLocation, (mSpecularTexture == null ? 0 : 1));
+		gl.glUniform1i(mHasMTextureUniformLocation, (mMTexture == null ? 0 : 1));
+		gl.glUniform1i(mHasNTextureUniformLocation, (mNTexture == null ? 0 : 1));
 	}
 	
 	@Override

@@ -46,5 +46,21 @@ vec2 encode(vec3 n)
 void main()
 {
 	// TODO PA1: Store diffuse color, position, encoded normal, material ID, and all other useful data in the g-buffer.
-	gl_FragData[0] = gl_FragData[1] = gl_FragData[2] = gl_FragData[3] = vec4(1.0);
+	vec2 n = encode(EyespaceNormal);
+	
+	vec3 diffuse = (HasDiffuseTexture ? texture2D(DiffuseTexture, TexCoord).xyz : DiffuseColor);
+	vec3 specular = (HasSpecularTexture ? texture2D(SpecularTexture, TexCoord).xyz : SpecularColor);
+	float myM = (HasMTexture ? texture2D(MTexture, TexCoord).x : M);
+	float myN = (HasNTexture ? texture2D(NTexture, TexCoord).x : N);
+	
+	gl_FragData[0] = vec4(diffuse, n.x);
+	gl_FragData[1] = vec4(EyespacePosition, n.y);
+	gl_FragData[2] = vec4(float(COOKTORRANCE_MATERIAL_ID), specular);
+	gl_FragData[3] = vec4(myM, myN, 0.0, 0.0);
+	
+	
+	
+	//gl_FragData[0] = gl_FragData[1] = gl_FragData[2] = gl_FragData[3] = vec4(1.0);
+	
+	
 }

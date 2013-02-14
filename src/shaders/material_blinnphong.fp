@@ -47,7 +47,7 @@ void main()
 	
 	vec3 diffuse = (HasDiffuseTexture ? texture2D(DiffuseTexture, TexCoord).xyz : DiffuseColor);
 	vec3 specular = (HasSpecularTexture ? texture2D(SpecularTexture, TexCoord).xyz : SpecularColor);
-	float exponent = (HasExponentTexture ? texture2D(ExponentTexture, TexCoord).xyz : PhongExponent);
+	float exponent = (HasExponentTexture ? texture2D(ExponentTexture, TexCoord).x : PhongExponent);
 	
 	gl_FragData[0] = vec4(diffuse, n.x);
 	gl_FragData[1] = vec4(EyespacePosition, n.y);

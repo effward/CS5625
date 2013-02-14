@@ -154,19 +154,23 @@ public class AnisotropicWardMaterial extends Material
 	@Override
 	public void bind(GL2 gl) throws OpenGLException
 	{
+		//System.out.println("Binding Anisotropic Shader Program...");
 		/* Bind shader and any textures, and update uniforms. */
 		getShaderProgram().bind(gl);
+		//System.out.println("Done.");
 		
+		//System.out.println("Setting uniforms...");
 		// TODO PA1: Set shader uniforms and bind any textures.
 		gl.glUniform3f(mDiffuseUniformLocation, mDiffuseColor.x, mDiffuseColor.y, mDiffuseColor.z);
 		gl.glUniform3f(mSpecularUniformLocation, mSpecularColor.x, mSpecularColor.y, mSpecularColor.z);
 		gl.glUniform1f(mAlphaXUniformLocation, mAlphaX);
 		gl.glUniform1f(mAlphaYUniformLocation, mAlphaY);
 		
-		if (mDiffuseTexture != null) mDiffuseTexture.bind(gl, mDiffuseTexture.getTextureTarget());
-		if (mSpecularTexture != null) mSpecularTexture.bind(gl, mSpecularTexture.getTextureTarget());
-		if (mAlphaXTexture != null) mAlphaXTexture.bind(gl, mAlphaXTexture.getTextureTarget());
-		if (mAlphaYTexture != null) mAlphaYTexture.bind(gl, mAlphaYTexture.getTextureTarget());
+		//System.out.println("Binding Textures...");
+		if (mDiffuseTexture != null) mDiffuseTexture.bind(gl, 0);
+		if (mSpecularTexture != null) mSpecularTexture.bind(gl, 1);
+		if (mAlphaXTexture != null) mAlphaXTexture.bind(gl, 2);
+		if (mAlphaYTexture != null) mAlphaYTexture.bind(gl, 3);
 		
 		gl.glUniform1i(mHasDiffuseTextureUniformLocation, (mDiffuseTexture != null ? 1 : 0));
 		gl.glUniform1i(mHasSpecularTextureUniformLocation, (mSpecularTexture != null ? 1 : 0));
