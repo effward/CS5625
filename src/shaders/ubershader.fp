@@ -152,6 +152,8 @@ vec3 shadeCookTorrance(vec3 diffuse, vec3 specular, float m, float n, vec3 posit
 	D = D / (4.0 * m * m * pow(nDotH, 4.0));
 	
 	//Cook-Torrance specular coefficient
+	//Using the nDotH > 0 cutoff that BlinnPhong above does (looks like a hack but w/e)
+	//to prevent some very obnoxious artifacts
 	float ct = (nDotH > 0 ?  F * D * G / (3.1415926536 * nDotL * nDotV) : 0.0);
 	
 	//Lighting
@@ -338,7 +340,7 @@ void main()
 		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
 	}
 
-	/*
+	
 	else if (materialID == ISOTROPIC_WARD_MATERIAL_ID)
 	{
 		
@@ -398,7 +400,7 @@ void main()
 		//gl_FragColor.rgb = vec3(1.0, 0.0, 0.0);
 		//gl_FragColor.rgb = diffuse;
 	}
-	*/
+	
 	
 	else
 	{
