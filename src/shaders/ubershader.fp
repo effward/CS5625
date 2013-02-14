@@ -328,6 +328,7 @@ void main()
 					LightPositions[i], 
 					LightColors[i], 
 					LightAttenuations[i]);
+			
 		}
 		
 		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
