@@ -166,7 +166,8 @@ vec3 shadeAnisotropicWard(vec3 diffuse, vec3 specular, float alphaX, float alpha
 	
 	// TODO PA1: Complete the Anisotropic Ward shading function.
 	float PI = 3.14159265358979323846264;
-	float ndoth = max(0.0, dot(normal, halfDirection));
+	//float ndoth = max(0.0, dot(normal, halfDirection));
+	float ndoth = dot(normal, halfDirection);
 	float exponentX = pow(dot(halfDirection, tangent) / alphaX, 2.0);
 	float exponentY = pow(dot(halfDirection, bitangent) / alphaY, 2.0);
 	float exponent = -2.0 * ((exponentX + exponentY) / (1.0 + ndoth));
@@ -211,7 +212,8 @@ vec3 shadeIsotropicWard(vec3 diffuse, vec3 specular, float alpha, vec3 position,
 	// TODO PA1: Complete the Isotropic Ward shading function.
 	float PI = 3.14159265358979323846264;
 	//float halfDirectionTheta = asin(sqrt(pow(halfDirection.x, 2.0) + pow(halfDirection.y, 2.0)));
-	float ndoth = max(0.0, dot(normal, halfDirection));
+	//float ndoth = max(0.0, dot(normal, halfDirection));
+	float ndoth = dot(normal, halfDirection);
 	float theta_h = acos(ndoth);
 	float tan2Theta = pow(tan(theta_h), 2.0);
 	float exponent = -1.0 * (tan2Theta / pow(alpha, 2.0));
