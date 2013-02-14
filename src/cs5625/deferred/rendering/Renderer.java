@@ -380,11 +380,17 @@ public class Renderer
 	{
 		/* Save all state to isolate any changes made by this mesh's material. */
 		gl.glPushAttrib(GL2.GL_ALL_ATTRIB_BITS);
+		
 		gl.glPushClientAttrib((int)GL2.GL_CLIENT_ALL_ATTRIB_BITS);
+		
 		
 		/* Activate the material. */
 		mesh.getMaterial().retrieveShader(gl, mShaderCache);
+		
+		OpenGLException.checkOpenGLError(gl);
 		mesh.getMaterial().bind(gl);
+		
+		OpenGLException.checkOpenGLError(gl);
 			
 		/* Enable the required vertex arrays and send data. */
 		if (mesh.getVertexData() == null)
@@ -428,6 +434,7 @@ public class Renderer
 				
 		/* Deactivate material and restore state. */
 		mesh.getMaterial().unbind(gl);
+		
 		
 		/* Render mesh wireframe if we're supposed to. */
 		if (mRenderWireframes && mesh.getVerticesPerPolygon() > 2)

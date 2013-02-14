@@ -120,6 +120,14 @@ public class BlinnPhongMaterial extends Material
 		getShaderProgram().bind(gl);
 		
 		// TODO PA1: Set shader uniforms and bind any textures.
+		
+		gl.glUniform3f(mDiffuseUniformLocation, mDiffuseColor.x, mDiffuseColor.y, mDiffuseColor.z);
+		gl.glUniform3f(mSpecularUniformLocation, mSpecularColor.x, mSpecularColor.y, mSpecularColor.z);
+		gl.glUniform1f(mExponentUniformLocation, mPhongExponent);
+		gl.glUniform1f(mHasDiffuseTextureUniformLocation, (mDiffuseTexture == null ? 0 : 1));
+		gl.glUniform1f(mHasSpecularTextureUniformLocation, (mSpecularTexture == null ? 0 : 1));
+		gl.glUniform1f(mHasExponentTextureUniformLocation, (mExponentTexture == null ? 0 : 1));
+		
 	}
 	
 	@Override

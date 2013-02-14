@@ -69,12 +69,13 @@ vec3 shadeLambertian(vec3 diffuse, vec3 position, vec3 normal, vec3 lightPositio
 	float attenuation = 1.0 / dot(lightAttenuation, vec3(1.0, r, r * r));
 	
 	return lightColor * attenuation * diffuse * ndotl;
+	
 }
 
 /**
  * Performs Blinn-Phong shading on the passed fragment data (color, normal, etc.) for a single light.
  *  
- * @param diffuse The diffuse color of the material at this fragment.
+ * @param diffuse The diffuse color of the material at this fragment
  * @param specular The specular color of the material at this fragment.
  * @param exponent The Phong exponent packed into the alpha channel. 
  * @param position The eyespace position of the surface at this fragment.
@@ -224,6 +225,42 @@ void main()
 		/* Unshaded material is just a constant color. */
 		gl_FragColor.rgb = diffuse;
 	}
+	else if (materialID == LAMBERTIAN_MATERIAL_ID)
+	{
+		vec3 col = vec3(0.0, 0.0, 0.0);
+		for (int l = 0; l < NumLights; l++) 
+		{
+			col += shadeLambertian(
+				diffuse, 
+				position, 
+				normal, 
+				LightPositions[l], 
+				LightColors[l], 
+				LightAttenuations[l]
+			);
+		}
+		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
+		
+	}
+	else if (materialID == BLINNPHONG_MATERIAL_ID)
+	{
+		vec3 col = vec3(0.0, 0.0, 0.0);
+		for (int l = 0; l < NumLights; l++) 
+		{
+			col += shadeBlinnPhong(
+				diffuse,
+				materialParams1.yza,
+				materialParams2.x,
+				position, 
+				normal, 
+				LightPositions[l], 
+				LightColors[l], 
+				LightAttenuations[l]
+			);
+		}
+		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
+	}
+	
 	// TODO PA1: Add logic to handle all other material IDs. Remember to loop over all NumLights.
 	
 	
