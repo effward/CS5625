@@ -128,6 +128,17 @@ public class IsotropicWardMaterial extends Material
 		getShaderProgram().bind(gl);
 		
 		// TODO PA1: Set shader uniforms and bind any textures.
+		gl.glUniform3f(mDiffuseUniformLocation, mDiffuseColor.x, mDiffuseColor.y, mDiffuseColor.z);
+		gl.glUniform3f(mSpecularUniformLocation, mSpecularColor.x, mSpecularColor.y, mSpecularColor.z);
+		gl.glUniform1f(mAlphaUniformLocation, mAlpha);
+		
+		if (mDiffuseTexture != null) mDiffuseTexture.bind(gl, mDiffuseTexture.getTextureTarget());
+		if (mSpecularTexture != null) mSpecularTexture.bind(gl, mSpecularTexture.getTextureTarget());
+		if (mAlphaTexture != null) mAlphaTexture.bind(gl, mAlphaTexture.getTextureTarget());
+		
+		gl.glUniform1f(mHasDiffuseTextureUniformLocation, (mDiffuseTexture != null ? 1 : 0));
+		gl.glUniform1f(mHasSpecularTextureUniformLocation, (mSpecularTexture != null ? 1 : 0));
+		gl.glUniform1f(mHasAlphaTextureUniformLocation, (mAlphaTexture != null ? 1 : 0));
 	}
 	
 	@Override
@@ -157,5 +168,9 @@ public class IsotropicWardMaterial extends Material
 		getShaderProgram().unbind(gl);
 		
 		// TODO PA1: Unbind any used textures.
+		if (mDiffuseTexture != null) mDiffuseTexture.unbind(gl);
+		if (mSpecularTexture != null) mSpecularTexture.unbind(gl);
+		if (mAlphaTexture != null) mAlphaTexture.unbind(gl);
+		
 	}
 }
