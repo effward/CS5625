@@ -124,10 +124,16 @@ public abstract class Mesh implements OpenGLResourceObject
 		matST.setRow(0, temp3);
 		matST.setRow(1, temp4);
 		matST.invert();
+		//System.out.println(matST.getNumCol());
+		//System.out.println(matST.getNumRow());
+		//System.out.println(matQ.getNumCol());
+		//System.out.println(matQ.getNumRow());
 		
-		matST.mul(matQ);
-		matST.getRow(0, tangent);
-		matST.getRow(1, bi_tangent);
+		GMatrix matTB = new GMatrix(2,3);
+		matTB.mul(matST, matQ);
+		//matST.mulTransposeRight(matST, matQ);
+		matTB.getRow(0, tangent);
+		matTB.getRow(1, bi_tangent);
 		
 		
 		/* Accumulate into temporary arrays. */
