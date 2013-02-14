@@ -136,9 +136,9 @@ public class IsotropicWardMaterial extends Material
 		if (mSpecularTexture != null) mSpecularTexture.bind(gl, mSpecularTexture.getTextureTarget());
 		if (mAlphaTexture != null) mAlphaTexture.bind(gl, mAlphaTexture.getTextureTarget());
 		
-		gl.glUniform1f(mHasDiffuseTextureUniformLocation, (mDiffuseTexture != null ? 1 : 0));
-		gl.glUniform1f(mHasSpecularTextureUniformLocation, (mSpecularTexture != null ? 1 : 0));
-		gl.glUniform1f(mHasAlphaTextureUniformLocation, (mAlphaTexture != null ? 1 : 0));
+		gl.glUniform1i(mHasDiffuseTextureUniformLocation, (mDiffuseTexture != null ? 1 : 0));
+		gl.glUniform1i(mHasSpecularTextureUniformLocation, (mSpecularTexture != null ? 1 : 0));
+		gl.glUniform1i(mHasAlphaTextureUniformLocation, (mAlphaTexture != null ? 1 : 0));
 	}
 	
 	@Override

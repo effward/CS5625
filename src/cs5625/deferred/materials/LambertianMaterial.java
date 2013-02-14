@@ -63,12 +63,11 @@ public class LambertianMaterial extends Material
 		/* Bind shader, and any textures, and update uniforms. */
 		getShaderProgram().bind(gl);
 		
-		
+		// Set shader uniforms and bind any textures.
 		if (mDiffuseTexture != null) mDiffuseTexture.bind(gl, 0);
 		
-		// TODO PA1: Set shader uniforms and bind any textures.
 		gl.glUniform3f(mDiffuseUniformLocation, mDiffuseColor.x, mDiffuseColor.y, mDiffuseColor.z);
-		gl.glUniform1f(mHasDiffuseTextureUniformLocation, (mDiffuseTexture != null ? 1 : 0));
+		gl.glUniform1i(mHasDiffuseTextureUniformLocation, (mDiffuseTexture == null ? 0 : 1));
 		
 	}
 
@@ -78,7 +77,7 @@ public class LambertianMaterial extends Material
 		/* Unbind anything bound in bind(). */
 		getShaderProgram().unbind(gl);
 
-		// TODO PA1: Unbind any used textures.
+		// Unbind any used textures.
 		if (mDiffuseTexture != null) mDiffuseTexture.unbind(gl);
 	}
 	

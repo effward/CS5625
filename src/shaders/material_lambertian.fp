@@ -38,8 +38,13 @@ void main()
 	// TODO PA1: Store diffuse color, position, encoded normal, material ID, and all other useful data in the g-buffer.
 	
 	vec2 n = encode(EyespaceNormal);
-	//gl_FragData[0] = vec4((HasDiffuseTexture ? texture2D(DiffuseTexture, TexCoord).xyz : DiffuseColor), n.x);
-	gl_FragData[0] = vec4(DiffuseColor, n.x);
+	
+	vec4 diff = vec4(DiffuseColor, n.x);
+	if (HasDiffuseTexture) {
+		diff.xyz = texture2D(DiffuseTexture, TexCoord).xyz;
+	}
+	
+	gl_FragData[0] = diff;
 	gl_FragData[1] = vec4(EyespacePosition, n.y);
 	gl_FragData[2] = vec4(float(LAMBERTIAN_MATERIAL_ID), 0.0, 0.0, 0.0);
 	gl_FragData[3] = vec4(0.0);

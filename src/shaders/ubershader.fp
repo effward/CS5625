@@ -126,13 +126,42 @@ vec3 shadeCookTorrance(vec3 diffuse, vec3 specular, float m, float n, vec3 posit
 	vec3 viewDirection = -normalize(position);
 	vec3 lightDirection = normalize(lightPosition - position);
 	vec3 halfDirection = normalize(lightDirection + viewDirection);
-	vec3 finalColor = vec3(0.0);
-
-	// TODO PA1: Complete the Cook-Torrance shading function.
 	
+	/*
+	float nDotH = dot(normal, halfDirection);
+	float nDotV = dot(normal, viewDirection);
+	float nDotL = dot(normal, lightDirection);
+	float vDotH = dot(viewDirection, halfDirection);
 	
+	//Schlick approx
+	float rf = pow((n - 1.0)/(n + 1.0), 2.0);
+	float F = rf + (1.0 - rf) * pow((1.0 - nDotL), 5.0); 
 	
-	return finalColor;
+	//Masking and shadowing
+	float G = min(
+		min(
+			1.0, 
+			2.0 * nDotH * nDotV / vDotH
+		),
+		2.0 * nDotH * nDotL / vDotH
+	);
+	
+	//Beckmann distrib
+	float D = acos(nDotH);
+	D = tan(D) / m;
+	D = exp(-pow(D, 2.0));
+	D = D / (4.0 * m * m * pow(nDotH, 4.0));
+	
+	//Cook-Torrance specular coefficient
+	float ct = F * D * G / (nDotL * nDotV * 3.1415926538979);
+	
+	//Lighting
+	float r = length(lightPosition - position);
+	float attenuation = 1.0 / dot(lightAttenuation, vec3(1.0, r, r * r));
+	
+	return lightColor * attenuation * diffuse * ct;
+	*/
+	return vec4(0.0);
 }
 
 /**
@@ -279,8 +308,28 @@ void main()
 		}
 		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
 	}
-	
-	// TODO PA1: Add logic to handle all other material IDs. Remember to loop over all NumLights.
+	/*
+	else if (materialID == COOKTORRANCE_MATERIAL_ID) 
+	{
+		vec3 col = vec3(0.0, 0.0, 0.0);
+		for(int l = 0; l < NumLights; l++)
+		{
+			col += shadeCookTorrance(
+				diffuse, 
+				materialParams1.yza, 
+				materialParams2.x, 
+				materialParams2.y, 
+				position, 
+				normal,
+				LightPositions[l], 
+				LightColors[l], 
+				LightAttenuations[l]
+			);		
+		}
+		
+		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
+	}
+	*/
 	/*
 	else if (materialID == ISOTROPIC_WARD_MATERIAL_ID)
 	{
