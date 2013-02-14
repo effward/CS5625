@@ -67,7 +67,6 @@ void main()
 	else {
 		gl_FragData[3] = vec4(Alpha, vec3(0.0));
 	}
-	//gl_FragData[0] = gl_FragData[1] = gl_FragData[2] = gl_FragData[3] = vec4(1.0);
 	
 
 }
