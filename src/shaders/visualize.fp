@@ -45,5 +45,24 @@ void main()
 	/* TODO PA1: Output a color to visualize the g-buffer data at the given pixel.
 	 *           You should visualize the data indicated by VisMode.
 	 */
-	gl_FragColor = vec4(0.0);
+	 if (VisMode == NORMALS_MODE)
+	 {
+	 	gl_FragColor = vec4(normal, 1.0);
+	 }
+	 else if (VisMode == TANGENTS_MODE)
+	 {
+	 	vec3 tangent = decode(materialParams2.zw);
+	 	gl_FragColor = vec4(tangent, 1.0);
+	 }
+	 else if (VisMode == BITANGENTS_MODE)
+	 {
+	 	vec3 tangent = decode(materialParams2.zw);
+	 	float bitangent_sign = materialParams1.x / abs(materialParams1.x);
+		vec3 bitangent = normalize(cross(normal, tangent) * bitangent_sign);
+		gl_FragColor = vec4(bitangent, 1.0);
+	 }
+	 else
+	 {
+	 	gl_FragColor = vec4(0.0);
+ 	 }
 }
