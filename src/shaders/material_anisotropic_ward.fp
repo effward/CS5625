@@ -77,7 +77,7 @@ void main()
 		temp.x = texture2D(AlphaXTexture, TexCoord).x;
 	}
 	if (HasAlphaYTexture) {
-		temp.y = texture2D(AlphaYTexture, TexCoord).y;
+		temp.y = texture2D(AlphaYTexture, TexCoord).x;
 	}
 	
 	gl_FragData[3] = temp;

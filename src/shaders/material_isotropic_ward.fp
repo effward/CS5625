@@ -62,7 +62,7 @@ void main()
 	}
 	
 	if (HasAlphaTexture) {
-		gl_FragData[3] = vec4(texture2D(AlphaTexture, TexCoord));
+		gl_FragData[3] = vec4(texture2D(AlphaTexture, TexCoord).x, 0.0, 0.0, 0.0);
 	}
 	else {
 		gl_FragData[3] = vec4(Alpha, vec3(0.0));

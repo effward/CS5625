@@ -161,18 +161,22 @@ vec3 shadeAnisotropicWard(vec3 diffuse, vec3 specular, float alphaX, float alpha
 	vec3 halfDirection = normalize(lightDirection + viewDirection);
 	vec3 finalColor = vec3(0.0);
 	
+	float r = length(lightPosition - position);
+	float attenuation = 1.0 / dot(lightAttenuation, vec3(1.0, r, r * r));
+	
 	// TODO PA1: Complete the Anisotropic Ward shading function.
 	float PI = 3.14159265358979323846264;
+	float ndoth = max(0.0, dot(normal, halfDirection));
 	float exponentX = pow(dot(halfDirection, tangent) / alphaX, 2.0);
 	float exponentY = pow(dot(halfDirection, bitangent) / alphaY, 2.0);
-	float exponent = -2.0 * ((exponentX + exponentY) / (1.0 + dot(halfDirection, normal)));
+	float exponent = -2.0 * ((exponentX + exponentY) / (1.0 + ndoth));
 	float rho = dot(normal, lightDirection);
 	float scalar = 1.0 / (4.0 * PI * alphaX * alphaY);
 	float dots = 1.0 / (sqrt(dot(normal, lightDirection) * dot(normal, viewDirection)));
 	
 	float finalScalar = rho * scalar * dots * exp(exponent);
 	
-	finalColor = lightColor * lightAttenuation * diffuse + specular * finalScalar;
+	finalColor = lightColor * attenuation * diffuse + specular * finalScalar;
 	
 	return finalColor;
 	
@@ -201,10 +205,15 @@ vec3 shadeIsotropicWard(vec3 diffuse, vec3 specular, float alpha, vec3 position,
 	vec3 halfDirection = normalize(lightDirection + viewDirection);
 	vec3 finalColor = vec3(0.0);
 	
+	float r = length(lightPosition - position);
+	float attenuation = 1.0 / dot(lightAttenuation, vec3(1.0, r, r * r));
+	
 	// TODO PA1: Complete the Isotropic Ward shading function.
 	float PI = 3.14159265358979323846264;
-	float halfDirectionTheta = asin(sqrt(pow(halfDirection.x, 2.0) + pow(halfDirection.y, 2.0)));
-	float tan2Theta = (1.0 - cos(2.0 * halfDirectionTheta)) / (cos(2.0 * halfDirectionTheta) + 1.0);
+	//float halfDirectionTheta = asin(sqrt(pow(halfDirection.x, 2.0) + pow(halfDirection.y, 2.0)));
+	float ndoth = max(0.0, dot(normal, halfDirection));
+	float theta_h = acos(ndoth);
+	float tan2Theta = pow(tan(theta_h), 2.0);
 	float exponent = -1.0 * (tan2Theta / pow(alpha, 2.0));
 	float rho = dot(normal, lightDirection);
 	float scalar = 1.0 / (4.0 * PI * pow(alpha, 2.0));
@@ -212,7 +221,7 @@ vec3 shadeIsotropicWard(vec3 diffuse, vec3 specular, float alpha, vec3 position,
 	
 	float finalScalar = rho * scalar * dots * exp(exponent);
 	
-	finalColor = lightColor * lightAttenuation * diffuse + specular * finalScalar;
+	finalColor = lightColor * attenuation * diffuse + specular * finalScalar;
 	
 	return finalColor;
 }
@@ -281,9 +290,10 @@ void main()
 	}
 	
 	// TODO PA1: Add logic to handle all other material IDs. Remember to loop over all NumLights.
-	/*
+	
 	else if (materialID == ISOTROPIC_WARD_MATERIAL_ID)
 	{
+		/*
 		vec3 col = vec3(0.0, 0.0, 0.0);
 		for(int i = 0; i < NumLights; i++)
 		{
@@ -303,9 +313,12 @@ void main()
 		}
 		
 		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
+		*/
+		gl_FragColor.rgb = vec3(1.0, 0.0, 0.0);
 	}
 	else if (materialID == ANISOTROPIC_WARD_MATERIAL_ID)
 	{
+		/*
 		vec3 col = vec3(0.0, 0.0, 0.0);
 		for(int i = 0; i < NumLights; i++)
 		{
@@ -332,8 +345,10 @@ void main()
 		}
 		
 		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
+		*/
+		gl_FragColor.rgb = vec3(1.0, 0.0, 0.0);
 	}
-	*/
+	
 	else
 	{
 		/* Unknown material, so just use the diffuse color. */

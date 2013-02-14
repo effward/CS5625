@@ -163,10 +163,10 @@ public class AnisotropicWardMaterial extends Material
 		gl.glUniform1f(mAlphaXUniformLocation, mAlphaX);
 		gl.glUniform1f(mAlphaYUniformLocation, mAlphaY);
 		
-		if (mDiffuseTexture != null) mDiffuseTexture.bind(gl, mDiffuseTexture.getTextureTarget());
-		if (mSpecularTexture != null) mSpecularTexture.bind(gl, mSpecularTexture.getTextureTarget());
-		if (mAlphaXTexture != null) mAlphaXTexture.bind(gl, mAlphaXTexture.getTextureTarget());
-		if (mAlphaYTexture != null) mAlphaYTexture.bind(gl, mAlphaYTexture.getTextureTarget());
+		if (mDiffuseTexture != null) mDiffuseTexture.bind(gl, 0);
+		if (mSpecularTexture != null) mSpecularTexture.bind(gl, 1);
+		if (mAlphaXTexture != null) mAlphaXTexture.bind(gl, 2);
+		if (mAlphaYTexture != null) mAlphaYTexture.bind(gl, 3);
 		
 		gl.glUniform1f(mHasDiffuseTextureUniformLocation, (mDiffuseTexture != null ? 1 : 0));
 		gl.glUniform1f(mHasSpecularTextureUniformLocation, (mSpecularTexture != null ? 1 : 0));
