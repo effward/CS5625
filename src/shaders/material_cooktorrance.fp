@@ -48,7 +48,7 @@ void main()
 	// TODO PA1: Store diffuse color, position, encoded normal, material ID, and all other useful data in the g-buffer.
 	vec2 n = encode(EyespaceNormal);
 	
-	vec3 diffuse = (HasDiffuseTexture ? texture2D(DiffuseTexture, TexCoord).xyz : DiffuseColor);
+	vec3 diffuse = (HasDiffuseTexture ? DiffuseColor * texture2D(DiffuseTexture, TexCoord).xyz : DiffuseColor);
 	vec3 specular = (HasSpecularTexture ? texture2D(SpecularTexture, TexCoord).xyz : SpecularColor);
 	float myM = (HasMTexture ? texture2D(MTexture, TexCoord).x : M);
 	float myN = (HasNTexture ? texture2D(NTexture, TexCoord).x : N);

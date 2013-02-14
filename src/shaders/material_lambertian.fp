@@ -41,7 +41,7 @@ void main()
 	
 	vec4 diff = vec4(DiffuseColor, n.x);
 	if (HasDiffuseTexture) {
-		diff.xyz = texture2D(DiffuseTexture, TexCoord).xyz;
+		diff.xyz = DiffuseColor * texture2D(DiffuseTexture, TexCoord).xyz;
 	}
 	
 	gl_FragData[0] = diff;

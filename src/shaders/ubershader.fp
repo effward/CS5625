@@ -297,7 +297,7 @@ void main()
 				LightAttenuations[l]
 			);
 		}
-		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
+		gl_FragColor.rgb = vec3(0.0, 0.0, 1.0);//vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
 		
 	}
 	else if (materialID == BLINNPHONG_MATERIAL_ID)
