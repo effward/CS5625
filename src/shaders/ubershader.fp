@@ -225,33 +225,67 @@ void main()
 		gl_FragColor.rgb = diffuse;
 	}
 	// TODO PA1: Add logic to handle all other material IDs. Remember to loop over all NumLights.
-	
-	for(int i = 0; i < NumLights; i++)
-	{
-		lightPosition = LightPositions[i];
-		lightColor = LightColors[i];
-		lightAttenuation = LightAttenuations[i];
 		
-		if (materialID == ISOTROPIC_WARD_MATERIAL_ID)
+	else if (materialID == ISOTROPIC_WARD_MATERIAL_ID)
+	{
+		vec3 col = vec3(0.0, 0.0, 0.0);
+		for(int i = 0; i < NumLights; i++)
 		{
+			lightPosition = LightPositions[i];
+			lightColor = LightColors[i];
+			lightAttenuation = LightAttenuations[i];
+
 			vec3 specular = materialParams1.yzw;
 			float alpha = float(materialParams2.x);
-			shadeIsotropicWard(diffuse, specular, alpha, position, normal, lightPosition, lightColor, lightAttenuation);
+			col += shadeIsotropicWard(
+					diffuse, 
+					specular, 
+					alpha, 
+					position, 
+					normal, 
+					lightPosition, 
+					lightColor, 
+					lightAttenuation);
+					
 		}
-		else if (materialID == ANISOTROPIC_WARD_MATERIAL_ID)
+		
+		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
+	}
+	else if (materialID == ANISOTROPIC_WARD_MATERIAL_ID)
+	{
+		vec3 col = vec3(0.0, 0.0, 0.0);
+		for(int i = 0; i < NumLights; i++)
 		{
+			lightPosition = LightPositions[i];
+			lightColor = LightColors[i];
+			lightAttenuation = LightAttenuations[i];
+	
 			vec3 specular = materialParams1.yzw;
 			float alphaX = float(materialParams2.x);
 			float alphaY = float(materialParams2.y);
 			vec3 tangent = decode(materialParams.zw);
 			float bitangent_sign = materialParams1.x / abs(materialParams1.x);
 			vec3 bitangent = normalize(cross(normal, tangent) * bitangent_sign);
-			shadeAnisotropicWard(diffuse, specular, alphaX, alphaY, position, normal, tangent, bitangent, lightPosition, lightColor, lightAttenuation);
+			col += shadeAnisotropicWard(
+					diffuse, 
+					specular, 
+					alphaX, 
+					alphaY, 
+					position, 
+					normal, 
+					tangent, 
+					bitangent, 
+					lightPosition, 
+					lightColor, 
+					lightAttenuation);
 		}
-		else
-		{
-			/* Unknown material, so just use the diffuse color. */
-			gl_FragColor.rgb = diffuse;
-		}
+		
+		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
 	}
+	else
+	{
+		/* Unknown material, so just use the diffuse color. */
+		gl_FragColor.rgb = diffuse;
+	}
+	
 }
