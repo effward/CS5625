@@ -155,11 +155,12 @@ vec3 shadeCookTorrance(vec3 diffuse, vec3 specular, float m, float n, vec3 posit
 vec3 shadeAnisotropicWard(vec3 diffuse, vec3 specular, float alphaX, float alphaY, vec3 position, vec3 normal,
 	vec3 tangent, vec3 bitangent, vec3 lightPosition, vec3 lightColor, vec3 lightAttenuation)
 {
+	
 	vec3 viewDirection = -normalize(position);
 	vec3 lightDirection = normalize(lightPosition - position);
 	vec3 halfDirection = normalize(lightDirection + viewDirection);
 	vec3 finalColor = vec3(0.0);
-
+	/*
 	// TODO PA1: Complete the Anisotropic Ward shading function.
 	float PI = 3.14159265358979323846264;
 	float exponentX = pow(dot(halfDirection, tangent) / alphaX, 2);
@@ -172,8 +173,9 @@ vec3 shadeAnisotropicWard(vec3 diffuse, vec3 specular, float alphaX, float alpha
 	float finalScalar = rho * scalar * dots * exp(exponent);
 	
 	finalColor = lightColor * lightAttenuation * diffuse + specular * finalScalar;
-	
+	*/
 	return finalColor;
+	
 }
 
 /**
@@ -193,11 +195,12 @@ vec3 shadeAnisotropicWard(vec3 diffuse, vec3 specular, float alphaX, float alpha
 vec3 shadeIsotropicWard(vec3 diffuse, vec3 specular, float alpha, vec3 position, vec3 normal,
 	vec3 lightPosition, vec3 lightColor, vec3 lightAttenuation)
 {
+	
 	vec3 viewDirection = -normalize(position);
 	vec3 lightDirection = normalize(lightPosition - position);
 	vec3 halfDirection = normalize(lightDirection + viewDirection);
 	vec3 finalColor = vec3(0.0);
-
+	/*
 	// TODO PA1: Complete the Isotropic Ward shading function.
 	float PI = 3.14159265358979323846264;
 	float halfDirectionTheta = asin(sqrt(pow(halfDirection.x, 2) + pow(halfDirection.y, 2)));
@@ -210,7 +213,7 @@ vec3 shadeIsotropicWard(vec3 diffuse, vec3 specular, float alpha, vec3 position,
 	float finalScalar = rho * scalar * dots * exp(exponent);
 	
 	finalColor = lightColor * lightAttenuation * diffuse + specular * finalScalar;
-	
+	*/
 	return finalColor;
 }
 
@@ -278,7 +281,7 @@ void main()
 	}
 	
 	// TODO PA1: Add logic to handle all other material IDs. Remember to loop over all NumLights.
-		
+	/*
 	else if (materialID == ISOTROPIC_WARD_MATERIAL_ID)
 	{
 		vec3 col = vec3(0.0, 0.0, 0.0);
@@ -329,6 +332,7 @@ void main()
 		
 		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
 	}
+	*/
 	else
 	{
 		/* Unknown material, so just use the diffuse color. */
