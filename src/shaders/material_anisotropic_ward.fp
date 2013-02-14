@@ -49,15 +49,18 @@ vec2 encode(vec3 n)
 
 void main()
 {
+	
 	// TODO PA1: Store diffuse color, position, encoded normal, material ID, and all other useful data in the g-buffer.
 	vec2 enc = encode(normalize(EyespaceNormal));
 	vec2 enc2 = encode(normalize(EyespaceTangent));
-	float bitangent_sign = dot(cross(EyespaceNormal, EyespaceTangent), EyespaceBiTangent)
-	bitangent_sign = bitangent_sign / abs(bitangent_sign)
+	float bitangent_sign = dot(cross(EyespaceNormal, EyespaceTangent), EyespaceBiTangent);
+	bitangent_sign = bitangent_sign / abs(bitangent_sign);
+	
 	
 	if (HasDiffuseTexture) {
 		gl_FragData[0] = vec4(DiffuseColor * texture2D(DiffuseTexture, TexCoord).xyz, enc.x);
 	}
+	
 	else {
 		gl_FragData[0] = vec4(DiffuseColor, enc.x);
 	}
@@ -70,7 +73,7 @@ void main()
 	else {
 		gl_FragData[2] = vec4(bitangent_sign * float(ANISOTROPIC_WARD_MATERIAL_ID), SpecularColor);
 	}
-	
+	/*
 	vec4 temp = vec4(AlphaX, AlphaY, enc2);
 	
 	if (HasAlphaXTexture) {
@@ -80,6 +83,39 @@ void main()
 		temp.y = texture2D(AlphaYTexture, TexCoord).x;
 	}
 	
-	gl_FragData[3] = temp;
+	//gl_FragData[3] = temp;
+	*/	
+	if (HasDiffuseTexture) {
+		gl_FragData[0] = vec4(DiffuseColor * texture2D(DiffuseTexture, TexCoord).xyz, enc.x);
+	}
+	
+	else {
+		gl_FragData[0] = vec4(DiffuseColor, enc.x);
+	}
+	
+	//gl_FragData[1] = vec4(EyespacePosition, enc.y);
+	//gl_FragData[2] = vec4(bitangent_sign * float(ANISOTROPIC_WARD_MATERIAL_ID), SpecularColor);
+	//gl_FragData[3] = vec4(AlphaX, AlphaY, enc2);
+	
+	
+	if (HasAlphaXTexture && HasAlphaYTexture)
+	{
+		gl_FragData[3] = vec4(texture2D(AlphaXTexture, TexCoord).r, texture2D(AlphaYTexture, TexCoord).r, enc2);
+	}
+	else if (HasAlphaXTexture)
+	{
+		gl_FragData[3] = vec4(texture2D(AlphaXTexture, TexCoord).r, AlphaY, enc2);
+	
+	}
+	else if (HasAlphaYTexture)
+	{
+		gl_FragData[3] = vec4(AlphaX, texture2D(AlphaYTexture, TexCoord).r, enc2);
+	
+	}
+	else 
+	{
+		gl_FragData[3] = vec4(AlphaX, AlphaY, enc2);
+	}
+	
 	
 }

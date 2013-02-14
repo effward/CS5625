@@ -293,7 +293,7 @@ void main()
 	
 	else if (materialID == ISOTROPIC_WARD_MATERIAL_ID)
 	{
-		/*
+		
 		vec3 col = vec3(0.0, 0.0, 0.0);
 		for(int i = 0; i < NumLights; i++)
 		{
@@ -313,12 +313,13 @@ void main()
 		}
 		
 		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
-		*/
-		gl_FragColor.rgb = vec3(1.0, 0.0, 0.0);
+		
+		//gl_FragColor.rgb = vec3(1.0, 0.0, 0.0);
+		//gl_FragColor.rgb = diffuse;
 	}
 	else if (materialID == ANISOTROPIC_WARD_MATERIAL_ID)
 	{
-		/*
+		
 		vec3 col = vec3(0.0, 0.0, 0.0);
 		for(int i = 0; i < NumLights; i++)
 		{
@@ -345,8 +346,9 @@ void main()
 		}
 		
 		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
-		*/
-		gl_FragColor.rgb = vec3(1.0, 0.0, 0.0);
+		
+		//gl_FragColor.rgb = vec3(1.0, 0.0, 0.0);
+		//gl_FragColor.rgb = diffuse;
 	}
 	
 	else

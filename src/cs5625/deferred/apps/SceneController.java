@@ -68,9 +68,9 @@ public abstract class SceneController implements MouseListener, MouseMotionListe
 		 * control (e.g. game-style input), make a new subclass!
 		 */
 
-		globalController = new DefaultSceneController();
+		//globalController = new DefaultSceneController();
 		//globalController = new ManyLightsSceneController();		
-		//globalController = new MaterialTestSceneController();
+		globalController = new MaterialTestSceneController();
 	}
 	
 	/*
