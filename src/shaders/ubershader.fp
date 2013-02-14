@@ -160,20 +160,20 @@ vec3 shadeAnisotropicWard(vec3 diffuse, vec3 specular, float alphaX, float alpha
 	vec3 lightDirection = normalize(lightPosition - position);
 	vec3 halfDirection = normalize(lightDirection + viewDirection);
 	vec3 finalColor = vec3(0.0);
-	/*
+	
 	// TODO PA1: Complete the Anisotropic Ward shading function.
 	float PI = 3.14159265358979323846264;
-	float exponentX = pow(dot(halfDirection, tangent) / alphaX, 2);
-	float exponentY = pow(dot(halfDirection, bitangent) / alphaY, 2);
-	float exponent = -2.0 * ((exponentX + exponentY) / (1 + dot(halfDirection, normal)));
+	float exponentX = pow(dot(halfDirection, tangent) / alphaX, 2.0);
+	float exponentY = pow(dot(halfDirection, bitangent) / alphaY, 2.0);
+	float exponent = -2.0 * ((exponentX + exponentY) / (1.0 + dot(halfDirection, normal)));
 	float rho = dot(normal, lightDirection);
-	float scalar = 1 / (4 * PI * alphaX * alphaY);
-	float dots = 1 / (sqrt(dot(normal, lightDirection) * dot(normal, viewDirection)));
+	float scalar = 1.0 / (4.0 * PI * alphaX * alphaY);
+	float dots = 1.0 / (sqrt(dot(normal, lightDirection) * dot(normal, viewDirection)));
 	
 	float finalScalar = rho * scalar * dots * exp(exponent);
 	
 	finalColor = lightColor * lightAttenuation * diffuse + specular * finalScalar;
-	*/
+	
 	return finalColor;
 	
 }
@@ -200,20 +200,20 @@ vec3 shadeIsotropicWard(vec3 diffuse, vec3 specular, float alpha, vec3 position,
 	vec3 lightDirection = normalize(lightPosition - position);
 	vec3 halfDirection = normalize(lightDirection + viewDirection);
 	vec3 finalColor = vec3(0.0);
-	/*
+	
 	// TODO PA1: Complete the Isotropic Ward shading function.
 	float PI = 3.14159265358979323846264;
-	float halfDirectionTheta = asin(sqrt(pow(halfDirection.x, 2) + pow(halfDirection.y, 2)));
-	float tan2Theta = (1 - cos(2 * halfDirectionTheta)) / (cos(2 * halfDirectionTheta) + 1);
-	float exponent = -1.0 * (tan2Theta / pow(alpha, 2));
+	float halfDirectionTheta = asin(sqrt(pow(halfDirection.x, 2.0) + pow(halfDirection.y, 2.0)));
+	float tan2Theta = (1.0 - cos(2.0 * halfDirectionTheta)) / (cos(2.0 * halfDirectionTheta) + 1.0);
+	float exponent = -1.0 * (tan2Theta / pow(alpha, 2.0));
 	float rho = dot(normal, lightDirection);
-	float scalar = 1 / (4 * PI * pow(alpha, 2));
-	float dots = 1 / (sqrt(dot(normal, lightDirection) * dot(normal, viewDirection)));
+	float scalar = 1.0 / (4.0 * PI * pow(alpha, 2.0));
+	float dots = 1.0 / (sqrt(dot(normal, lightDirection) * dot(normal, viewDirection)));
 	
 	float finalScalar = rho * scalar * dots * exp(exponent);
 	
 	finalColor = lightColor * lightAttenuation * diffuse + specular * finalScalar;
-	*/
+	
 	return finalColor;
 }
 
