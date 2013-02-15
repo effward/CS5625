@@ -66,10 +66,11 @@ void main()
 	gl_FragData[1] = vec4(EyespacePosition, enc.y);
 	
 	if (HasSpecularTexture) {
-		gl_FragData[2] = vec4(bitangent_sign * float(ANISOTROPIC_WARD_MATERIAL_ID), SpecularColor * texture2D(SpecularTexture, TexCoord).xyz);
+		gl_FragData[2] = vec4(float(ANISOTROPIC_WARD_MATERIAL_ID), SpecularColor * texture2D(SpecularTexture, TexCoord).xyz);
 	}
 	else {
-		gl_FragData[2] = vec4(bitangent_sign * float(ANISOTROPIC_WARD_MATERIAL_ID), SpecularColor);
+		gl_FragData[2] = vec4(float(ANISOTROPIC_WARD_MATERIAL_ID), SpecularColor);
+		//took out bitangent sign multiplication because it was messing with the material...
 	}
 	
 	if (HasAlphaXTexture && HasAlphaYTexture)

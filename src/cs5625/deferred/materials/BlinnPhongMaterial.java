@@ -160,6 +160,8 @@ public class BlinnPhongMaterial extends Material
 		/* Unbind everything bound in bind(). */
 		getShaderProgram().unbind(gl);
 		
-		// TODO PA1: Unbind any used textures.
+		if (mDiffuseTexture != null) mDiffuseTexture.unbind(gl);
+		if (mSpecularTexture != null) mSpecularTexture.unbind(gl);
+		if (mExponentTexture != null) mExponentTexture.unbind(gl);
 	}
 }

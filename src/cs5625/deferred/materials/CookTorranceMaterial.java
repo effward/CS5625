@@ -143,7 +143,7 @@ public class CookTorranceMaterial extends Material
 		/* Bind shader and any textures, and update uniforms. */
 		getShaderProgram().bind(gl);
 		
-		// TODO PA1: Set shader uniforms and bind any textures.
+		// Set shader uniforms and bind any textures.
 		if (mDiffuseTexture != null) mDiffuseTexture.bind(gl, 0);
 		if (mSpecularTexture != null) mSpecularTexture.bind(gl, 1);
 		if (mMTexture != null) mMTexture.bind(gl, 2);
@@ -188,6 +188,9 @@ public class CookTorranceMaterial extends Material
 		/* Unbind everything bound in bind(). */
 		getShaderProgram().unbind(gl);
 		
-		// TODO PA1: Unbind any used textures.
+		if (mDiffuseTexture != null) mDiffuseTexture.unbind(gl);
+		if (mSpecularTexture != null) mSpecularTexture.unbind(gl);
+		if (mMTexture != null) mMTexture.unbind(gl);
+		if (mNTexture != null) mNTexture.unbind(gl);
 	}
 }

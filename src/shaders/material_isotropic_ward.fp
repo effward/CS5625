@@ -43,7 +43,7 @@ vec2 encode(vec3 n)
 void main()
 {
 	// TODO PA1: Store diffuse color, position, encoded normal, material ID, and all other useful data in the g-buffer.
-	vec2 enc = encode(normalize(EyespaceNormal));
+	vec2 enc = encode(EyespaceNormal);
 	
 	if (HasDiffuseTexture) {
 		gl_FragData[0] = vec4(DiffuseColor * texture2D(DiffuseTexture, TexCoord).xyz, enc.x);
