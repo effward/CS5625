@@ -1,0 +1,17 @@
+/**
+ * gaussian_blur.vp
+ * 
+ * Gaussian blur shader, that can be used to blur a given texture.
+ * 
+ * Written for Cornell CS 5625 (Interactive Computer Graphics).
+ * Copyright (c) 2012, Computer Science Department, Cornell University.
+ * 
+ * @author Ivaylo Boyadzhiev (iib2)
+ * @date 2013-02-13
+ */
+
+void main()
+{
+	gl_Position = ftransform();
+	gl_TexCoord[0] = gl_MultiTexCoord0;
+}

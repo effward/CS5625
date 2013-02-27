@@ -1,0 +1,40 @@
+/**
+ * material_anisotropic_ward.vp
+ * 
+ * Vertex shader shader which writes material information needed for Anisotropic Ward shading to
+ * the gbuffer.
+ * 
+ * Written for Cornell CS 5625 (Interactive Computer Graphics).
+ * Copyright (c) 2012, Computer Science Department, Cornell University.
+ * 
+ * @author zIvo Boyadzhiev (iib2)
+ * @date 2013-01-30
+ */
+
+/* Attributes */
+attribute vec4 VertexTangent;
+
+/* Pass eyespace position, normal, texcoord, tangent and bitangent vectors to the fragment shader. */
+varying vec3 EyespacePosition;
+varying vec3 EyespaceNormal;
+varying vec2 TexCoord;
+
+varying vec3 EyespaceTangent;
+varying vec3 EyespaceBiTangent;
+
+void main()
+{
+	/* Standard vertex transform. */
+	gl_Position = ftransform();
+	
+	/* TODO PA1: Transform stuff into eye space and store in varyings.
+	 *           You must also construct the Bitangent from the VertexTangent attribute.
+	 *           Note that VertexTangent.xyz is the tangent and VertexTangent.w is the handedness of the bitangent.
+	 */
+	
+	EyespacePosition = vec3(gl_ModelViewMatrix * gl_Vertex);
+	EyespaceNormal = normalize(gl_NormalMatrix * gl_Normal);
+	EyespaceTangent = normalize(gl_NormalMatrix * VertexTangent.xyz);
+	EyespaceBiTangent = normalize(cross(EyespaceNormal, EyespaceTangent) * VertexTangent.w);
+	TexCoord = vec2(gl_MultiTexCoord0);
+}

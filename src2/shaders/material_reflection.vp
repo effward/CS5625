@@ -1,0 +1,25 @@
+/**
+ * material_reflection.vp
+ * 
+ * Vertex shader for calculating Cube Map reflection.
+ * 
+ * Written for Cornell CS 5625 (Interactive Computer Graphics).
+ * Copyright (c) 2012, Computer Science Department, Cornell University.
+ * 
+ * @author Ivaylo Boyadzhiev (iib2)
+ * @date 2013-02-11
+ */
+
+/* Pass eyespace position and normal to the fragment shader. */
+varying vec3 EyespacePosition;
+varying vec3 EyespaceNormal;
+
+void main()
+{
+	/* Standard vertex transform. */
+	gl_Position = ftransform();
+	
+	// TODO PA2: Transform stuff into eye space and store in varyings.
+	
+	EyespacePosition = EyespaceNormal = vec3(1.0);					
+}
