@@ -208,7 +208,7 @@ vec3 shadeAnisotropicWard(vec3 diffuse, vec3 specular, float alphaX, float alpha
 	float nDotL = dot(normal, lightDirection);
 	
 	finalColor = lightColor * attenuation * (diffuse * max(0.0, nDotL) + specular * finalScalar);
-	
+	finalColor = vec3(finalScalar);
 	return finalColor;
 
 	
