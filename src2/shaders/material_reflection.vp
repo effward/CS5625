@@ -21,5 +21,6 @@ void main()
 	
 	// TODO PA2: Transform stuff into eye space and store in varyings.
 	
-	EyespacePosition = EyespaceNormal = vec3(1.0);					
+	EyespacePosition = vec3(gl_ModelViewMatrix * gl_Vertex);
+	EyespaceNormal = normalize(gl_NormalMatrix * gl_Normal);					
 }

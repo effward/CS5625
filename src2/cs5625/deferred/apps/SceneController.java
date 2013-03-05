@@ -70,8 +70,8 @@ public abstract class SceneController implements MouseListener, MouseMotionListe
 
 		//globalController = new DefaultSceneController();
 		//globalController = new ManyLightsSceneController();
-		globalController = new MaterialTestSceneController();
-		//globalController = new TexturesTestSceneController();
+		//globalController = new MaterialTestSceneController();
+		globalController = new TexturesTestSceneController();
 	}
 	
 	/*

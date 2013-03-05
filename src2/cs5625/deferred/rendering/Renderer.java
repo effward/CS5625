@@ -11,6 +11,7 @@ import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
+import javax.vecmath.Matrix3f;
 
 import cs5625.deferred.materials.Material;
 import cs5625.deferred.materials.Texture.Datatype;
@@ -516,7 +517,12 @@ public class Renderer
 		// TODO PA2: Set the inverse camera rotation matrix uniform and bind the static
 		// and the active dynamic cube maps (given by mNumDynamicCubeMaps).
 		// Hint: Make sure you upload the inverse world space camera rotation matrix,
-		// using glUniformMatrix3fv.			
+		// using glUniformMatrix3fv.	
+		Matrix3f mat = camera.getRotationMatrix3f();
+		mat.invert();
+		float[] temp = Util.fromMatrix3f(mat);
+		gl.glUniformMatrix3fv(mCameraInverseRotationUniformLocation, 1, false, FloatBuffer.wrap(temp));
+		mStaticCubeMap.bind(gl, mStaticCubeMapIndex);
 
 		/* Let there be light! */
 		Util.drawFullscreenQuad(gl, mViewportWidth, mViewportHeight);
@@ -525,6 +531,7 @@ public class Renderer
 		mUberShader.unbind(gl);
 		
 		// TODO PA2: Unbind the static and active dynamic cube maps.
+		mStaticCubeMap.unbind(gl);
 		
 		
 		for (int i = 0; i < GBuffer_FinalSceneIndex; ++i)
@@ -1015,6 +1022,7 @@ public class Renderer
 			
 			/* Load the static cube map images */
 			mStaticCubeMap = TextureCubeMap.load(gl, "textures/cubemap/backyard_", ".png", true);
+			//mStaticCubeMap = TextureCubeMap.load(gl, "textures/cubemap/debug_", ".png", true);
 			mStaticCubeMap.setCubeMapIndex(1); /* The static cube map has index 1. */
 			mStaticCubeMap.setBlurShaderProgram(mBlurShader);
 //			mStaticCubeMap.setBlurWidthX(16);

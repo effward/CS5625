@@ -114,8 +114,21 @@ vec3 sampleCubeMap(vec3 reflectedDirection, int cubeMapIndex)
 vec3 mixEnvMapWithBaseColor(int cubeMapIndex, vec3 baseColor, vec3 position, vec3 normal, float n) {
 	// TODO PA2: Implement the requirements of this function. 
 	// Hint: You can use the GLSL command mix to linearly blend between two colors.
+	float theta = dot(normalize(position), normalize(normal));
+	float cosTheta = cos(theta);
 	
-	return vec3(0.0);	
+	//Schlick approx
+	float rf = pow((n - 1.0)/(n + 1.0), 2.0);
+	float F = rf + (1.0 - rf) * pow((1.0 - cosTheta), 5.0); 
+	
+	vec3 reflection = vec3(0.0);
+	
+	float nDotV = dot(normal, position);
+	reflection = vec3(normalize(CameraInverseRotation * (2.0 * nDotV * normal - position)));
+	
+	vec3 reflectedColor = sampleCubeMap(reflection, cubeMapIndex);
+	
+	return baseColor * (1.0 - F) + reflectedColor * F;	
 }
 
 /**
@@ -356,8 +369,12 @@ vec3 shadeIsotropicWard(vec3 diffuse, vec3 specular, float alpha, vec3 position,
 vec3 shadeReflective(vec3 position, vec3 normal, int cubeMapIndex)
 {	
 	// TODO PA2: Implement a perfect mirror material using environmnet map lighting.
+	vec3 reflection = vec3(0.0);
 	
-	return vec3(0.0);
+	float nDotV = dot(normal, position);
+	reflection = vec3(normalize(CameraInverseRotation * (2.0 * nDotV * normal - position)));
+		
+	return sampleCubeMap(reflection, 1);
 }
 
 
@@ -375,7 +392,7 @@ void main()
 	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 
 	/* Branch on material ID and shade as appropriate. */
-	int materialID = int(materialParams1.x);
+	int materialID = abs(int(materialParams1.x));
 
 	if (materialID == 0)
 	{
@@ -483,7 +500,16 @@ void main()
 		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
 	}
 	// TODO PA2: (1) Add logic to handle the new reflection material; (2) Extend your Cook-Torrance
-	// model to support perfect mirror reflection from an environment map, given by its index. 	
+	// model to support perfect mirror reflection from an environment map, given by its index. 
+	else if (materialID == REFLECTION_MATERIAL_ID)
+	{
+		vec3 col = vec3(0.0);
+		for(int i = 0; i < NumLights; i++)
+		{
+			col += shadeReflective(position, normal, int(materialParams2.x));
+		}
+		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
+	}	
 	else
 	{
 		/* Unknown material, so just use the diffuse color. */
