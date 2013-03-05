@@ -36,5 +36,5 @@ void main()
 	gl_FragData[0] = vec4(vec3(1.0), enc.x);
 	gl_FragData[1] = vec4(EyespacePosition, enc.y);
 	gl_FragData[2] = vec4(float(REFLECTION_MATERIAL_ID), 0.0, 0.0, 0.0);
-	gl_FragData[3] = vec4(1.0, 0.0, 0.0, 0.0);
+	gl_FragData[3] = vec4(float(CubeMapIndex), 0.0, 0.0, 0.0);
 }

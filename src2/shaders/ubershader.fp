@@ -374,7 +374,7 @@ vec3 shadeReflective(vec3 position, vec3 normal, int cubeMapIndex)
 	float nDotV = dot(normal, position);
 	reflection = vec3(normalize(CameraInverseRotation * (2.0 * nDotV * normal - position)));
 		
-	return sampleCubeMap(reflection, 1);
+	return sampleCubeMap(reflection, cubeMapIndex);
 }
 
 
