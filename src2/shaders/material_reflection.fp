@@ -30,6 +30,11 @@ vec2 encode(vec3 n)
 void main()
 {
     // TODO PA2: Store position, encoded normal, material ID, and the cube map index in the g-buffer.
+    
+    vec2 enc = encode(normalize(EyespaceNormal));
 	
-	gl_FragData[0] = gl_FragData[1] = gl_FragData[2] = gl_FragData[3] = vec4(1.0);		
+	gl_FragData[0] = vec4(vec3(1.0), enc.x);
+	gl_FragData[1] = vec4(EyespacePosition, enc.y);
+	gl_FragData[2] = vec4(float(REFLECTION_MATERIAL_ID), 0.0, 0.0, 0.0);
+	gl_FragData[3] = vec4(float(CubeMapIndex), 0.0, 0.0, 0.0);
 }
