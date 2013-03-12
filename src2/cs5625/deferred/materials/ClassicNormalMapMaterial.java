@@ -114,9 +114,19 @@ public class ClassicNormalMapMaterial extends Material{
 	@Override
 	public void bind(GL2 gl) throws OpenGLException {
 		getShaderProgram().bind(gl);
+					
+		if (mDiffuseTexture != null) mDiffuseTexture.bind(gl, 0);
+		if (mSpecularTexture != null) mSpecularTexture.bind(gl, 1);
+		if (mExponentTexture != null) mExponentTexture.bind(gl, 2);
+		if (mNormalTexture != null) mNormalTexture.bind(gl, 3);
 		
-		//TODO PA2: Set shader uniforms and bind textures				
-		
+		gl.glUniform3f(mDiffuseUniformLocation, mDiffuseColor.x, mDiffuseColor.y, mDiffuseColor.z);
+		gl.glUniform3f(mSpecularUniformLocation, mSpecularColor.x, mSpecularColor.y, mSpecularColor.z);
+		gl.glUniform1f(mExponentUniformLocation, mPhongExponent);
+		gl.glUniform1i(mHasDiffuseTextureUniformLocation, (mDiffuseTexture == null ? 0 : 1));
+		gl.glUniform1i(mHasSpecularTextureUniformLocation, (mSpecularTexture == null ? 0 : 1));
+		gl.glUniform1i(mHasExponentTextureUniformLocation, (mExponentTexture == null ? 0 : 1));
+		gl.glUniform1i(mHasNormalTextureUniformLocation, (mNormalTexture == null ? 0 : 1));
 	}
 
 	@Override
@@ -145,8 +155,10 @@ public class ClassicNormalMapMaterial extends Material{
 	public void unbind(GL2 gl) {
 		getShaderProgram().unbind(gl);
 		
-		// TODO PA2: Unbind any used textures.
-		
+		if (mDiffuseTexture != null) mDiffuseTexture.unbind(gl);
+		if (mSpecularTexture != null) mSpecularTexture.unbind(gl);
+		if (mExponentTexture != null) mExponentTexture.unbind(gl);
+		if (mNormalTexture != null) mNormalTexture.unbind(gl);
 	}
 	
 	@Override

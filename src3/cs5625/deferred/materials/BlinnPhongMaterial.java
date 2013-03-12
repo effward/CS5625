@@ -7,17 +7,18 @@ import cs5625.deferred.misc.OpenGLException;
 import cs5625.deferred.rendering.ShaderProgram;
 
 /**
- * NormapMapMaterial.java
+ * BlinnPhongMaterial.java
  * 
- * Implements the Blinn-Phong shading model with the option for a normal map.
+ * Implements the Blinn-Phong shading model.
  * 
  * Written for Cornell CS 5625 (Interactive Computer Graphics).
- * Copyright (c) 2013, Computer Science Department, Cornell University.
+ * Copyright (c) 2012, Computer Science Department, Cornell University.
  * 
- * @author Asher Dunn (ad488), John DeCorato (jd537)
- * @date 2013-02-12
+ * @author Asher Dunn (ad488)
+ * @date 2012-03-24
  */
-public class NormalMapMaterial extends Material{
+public class BlinnPhongMaterial extends Material
+{
 	/* Blinn-Phong material properties. */
 	private Color3f mDiffuseColor = new Color3f(1.0f, 1.0f, 1.0f);
 	private Color3f mSpecularColor = new Color3f(1.0f, 1.0f, 1.0f);
@@ -28,26 +29,22 @@ public class NormalMapMaterial extends Material{
 	private Texture2D mSpecularTexture = null;
 	private Texture2D mExponentTexture = null;
 	
-	/* Normal map */
-	private Texture2D mNormalTexture = null;
-	
 	/* Uniform locations for the shader. */
 	private int mDiffuseUniformLocation = -1;
 	private int mSpecularUniformLocation = -1;
 	private int mExponentUniformLocation = -1;
-
 	private int mHasDiffuseTextureUniformLocation = -1;
 	private int mHasSpecularTextureUniformLocation = -1;
 	private int mHasExponentTextureUniformLocation = -1;
-	private int mHasNormalTextureUniformLocation = -1;
 	
-	public NormalMapMaterial() {
-		
+	public BlinnPhongMaterial()
+	{
+		/* Default constructor. */
 	}
-	
-	public NormalMapMaterial(Color3f diffuseColor, Texture2D normalTexture) {
-		mDiffuseColor = diffuseColor;
-		mNormalTexture = normalTexture;
+
+	public BlinnPhongMaterial(Color3f diffuse)
+	{
+		mDiffuseColor.set(diffuse);
 	}
 	
 	public Color3f getDiffuseColor()
@@ -68,6 +65,16 @@ public class NormalMapMaterial extends Material{
 	public void setSpecularColor(Color3f specular)
 	{
 		mSpecularColor = specular;
+	}
+	
+	public float getPhongExponent()
+	{
+		return mPhongExponent;
+	}
+	
+	public void setPhongExponent(float exponent)
+	{
+		mPhongExponent = exponent;
 	}
 
 	public Texture2D getDiffuseTexture()
@@ -100,25 +107,21 @@ public class NormalMapMaterial extends Material{
 		mExponentTexture = texture;
 	}
 
-	
-	public Texture2D getNormalTexture()
-	{
-		return mNormalTexture;
-	}
-	
-	public void setNormalTexture(Texture2D texture)
-	{
-		mNormalTexture = texture;
-	}
-	
 	@Override
-	public void bind(GL2 gl) throws OpenGLException {
+	public String getShaderIdentifier()
+	{
+		return "shaders/material_blinnphong";
+	}
+		
+	@Override
+	public void bind(GL2 gl) throws OpenGLException
+	{
+		/* Bind shader and any textures, and update uniforms. */
 		getShaderProgram().bind(gl);
 		
 		if (mDiffuseTexture != null) mDiffuseTexture.bind(gl, 0);
 		if (mSpecularTexture != null) mSpecularTexture.bind(gl, 1);
 		if (mExponentTexture != null) mExponentTexture.bind(gl, 2);
-		if (mNormalTexture != null) mNormalTexture.bind(gl, 3);
 		
 		gl.glUniform3f(mDiffuseUniformLocation, mDiffuseColor.x, mDiffuseColor.y, mDiffuseColor.z);
 		gl.glUniform3f(mSpecularUniformLocation, mSpecularColor.x, mSpecularColor.y, mSpecularColor.z);
@@ -126,10 +129,9 @@ public class NormalMapMaterial extends Material{
 		gl.glUniform1i(mHasDiffuseTextureUniformLocation, (mDiffuseTexture == null ? 0 : 1));
 		gl.glUniform1i(mHasSpecularTextureUniformLocation, (mSpecularTexture == null ? 0 : 1));
 		gl.glUniform1i(mHasExponentTextureUniformLocation, (mExponentTexture == null ? 0 : 1));
-		gl.glUniform1i(mHasNormalTextureUniformLocation, (mNormalTexture == null ? 0 : 1));			
 		
 	}
-
+	
 	@Override
 	protected void initializeShader(GL2 gl, ShaderProgram shader)
 	{
@@ -141,36 +143,23 @@ public class NormalMapMaterial extends Material{
 		mHasDiffuseTextureUniformLocation = shader.getUniformLocation(gl, "HasDiffuseTexture");
 		mHasSpecularTextureUniformLocation = shader.getUniformLocation(gl, "HasSpecularTexture");
 		mHasExponentTextureUniformLocation = shader.getUniformLocation(gl, "HasExponentTexture");
-		mHasNormalTextureUniformLocation = shader.getUniformLocation(gl, "HasNormalTexture");
 		
 		/* These are only set once, so set them here. */
 		shader.bind(gl);
 		gl.glUniform1i(shader.getUniformLocation(gl, "DiffuseTexture"), 0);
 		gl.glUniform1i(shader.getUniformLocation(gl, "SpecularTexture"), 1);
 		gl.glUniform1i(shader.getUniformLocation(gl, "ExponentTexture"), 2);
-		gl.glUniform1i(shader.getUniformLocation(gl, "NormalTexture"), 3);
 		shader.unbind(gl);
 	}
-	
+
 	@Override
-	public void unbind(GL2 gl) {
+	public void unbind(GL2 gl)
+	{
+		/* Unbind everything bound in bind(). */
 		getShaderProgram().unbind(gl);
 		
 		if (mDiffuseTexture != null) mDiffuseTexture.unbind(gl);
 		if (mSpecularTexture != null) mSpecularTexture.unbind(gl);
 		if (mExponentTexture != null) mExponentTexture.unbind(gl);
-		if (mNormalTexture != null) mNormalTexture.unbind(gl);
-		
 	}
-
-	@Override
-	public String[] getRequiredVertexAttributes() {
-		return new String[] {"VertexTangent"};
-	}
-	
-	@Override
-	public String getShaderIdentifier() {
-		return "shaders/material_normal_map";
-	}
-
 }

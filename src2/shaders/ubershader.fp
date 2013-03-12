@@ -191,6 +191,7 @@ vec3 shadeBlinnPhong(vec3 diffuse, vec3 specular, float exponent, vec3 position,
 	float attenuation = 1.0 / dot(lightAttenuation, vec3(1.0, r, r * r));
 	
 	return lightColor * attenuation * (diffuse * ndotl + specular * pow_ndoth);
+	//return diffuse;
 }
 
 /**

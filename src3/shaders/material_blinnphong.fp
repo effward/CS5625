@@ -42,7 +42,7 @@ vec2 encode(vec3 n)
 
 void main()
 {
-	
+	// Store diffuse color, position, encoded normal, material ID, and all other useful data in the g-buffer.
 	vec2 n = encode(EyespaceNormal);
 	
 	vec3 diffuse = (HasDiffuseTexture ? DiffuseColor * texture2D(DiffuseTexture, TexCoord).xyz : DiffuseColor);
@@ -53,5 +53,4 @@ void main()
 	gl_FragData[1] = vec4(EyespacePosition, n.y);
 	gl_FragData[2] = vec4(float(BLINNPHONG_MATERIAL_ID), specular);
 	gl_FragData[3] = vec4(exponent, 0.0, 0.0, 0.0);
-	
 }

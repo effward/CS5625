@@ -47,5 +47,16 @@ void main()
 	// TODO PA2: Store diffuse color, position, encoded normal, material ID, and all other useful data in the g-buffer.
 	//			 Use the normal map to get a new normal.
 	
-	gl_FragData[0] = gl_FragData[1] = gl_FragData[2] = gl_FragData[3] = vec4(1.0);	
+	
+	vec3 diffuse = (HasDiffuseTexture ? DiffuseColor * texture2D(DiffuseTexture, TexCoord).xyz : DiffuseColor);
+	vec3 specular = (HasSpecularTexture ? SpecularColor * texture2D(SpecularTexture, TexCoord).xyz : SpecularColor);
+	float exponent = (HasExponentTexture ? PhongExponent * texture2D(ExponentTexture, TexCoord).x : PhongExponent);
+	vec3 normal = (HasNormalTexture ? texture2D(NormalTexture, TexCoord).xyz : EyespaceNormal);
+	
+	vec2 n = encode(normal);
+	
+	gl_FragData[0] = vec4(diffuse, n.x);
+	gl_FragData[1] = vec4(EyespacePosition, n.y);
+	gl_FragData[2] = vec4(float(BLINNPHONG_MATERIAL_ID), specular);
+	gl_FragData[3] = vec4(exponent, 0.0, 0.0, 0.0);
 }
