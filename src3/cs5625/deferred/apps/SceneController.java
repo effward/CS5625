@@ -271,12 +271,12 @@ public abstract class SceneController implements MouseListener, MouseMotionListe
 			requiresRender();
 		}
 		else if (c == 'd') {
-			mRenderer.setShadowMapBias(mRenderer.getShadowMapBias() - 0.000001f);
+			mRenderer.setShadowMapBias(mRenderer.getShadowMapBias() - 0.00001f);
 			System.out.println("Shadow Map Bias: " + mRenderer.getShadowMapBias());
 			requiresRender();
 		}
 		else if (c == 'D') {
-			mRenderer.setShadowMapBias(mRenderer.getShadowMapBias() + 0.000001f);
+			mRenderer.setShadowMapBias(mRenderer.getShadowMapBias() + 0.00001f);
 			System.out.println("Shadow Map Bias: " + mRenderer.getShadowMapBias());
 			requiresRender();
 		}

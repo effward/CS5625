@@ -467,6 +467,14 @@ public class Renderer
 			//lightTransf.mul(lightProj);
 			lightProj.mul(lightTransf);
 			
+			Matrix4f normalizeCube = new Matrix4f(
+				0.5f, 0.0f, 0.0f, 0.5f,
+				0.0f, 0.5f, 0.0f, 0.5f,
+				0.0f, 0.0f, 0.5f, 0.5f,
+				0.0f, 0.0f, 0.0f, 1.0f
+			);
+			
+			normalizeCube.mul(lightProj);
 			
 	
 			//Grab matrix from the camera.
@@ -475,7 +483,7 @@ public class Renderer
 			//Store in column-major arrays
 			for (int col = 0; col < 4; col++) {
 				for (int row = 0; row < 4; row++) {
-					lightMatrix[row + col * 4] = lightTransf.getElement(row, col);
+					lightMatrix[row + col * 4] = normalizeCube.getElement(row, col);
 					inverseViewMatrix[row + col * 4] = camTransf.getElement(row, col);
 				}
 			}

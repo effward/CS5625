@@ -77,8 +77,8 @@ float DepthToLinear(float value)
 /** Returns a binary value for if this location is shadowed. 0 = shadowed, 1 = not shadowed.
  */
 float getShadowVal(vec4 shadowCoord, vec2 offset) {
-	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy * 0.5 + vec2(0.5, 0.5) + offset).x);
-	return (DepthToLinear(shadowCoord.z) < depth - 0.1 + bias ? 1.0 : 0.0);
+	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy + offset).x);
+	return (DepthToLinear(shadowCoord.z) < depth + bias ? 1.0 : 0.0);
 }
 
 /** Calculates regular shadow map algorithm shadow strength
@@ -122,34 +122,46 @@ float getShadowVal(vec4 shadowCoord, vec2 offset) {
  	
  	// TODO PA3: Implement this function (see above).
 	
- 	float x,y,depthBlocker,tempDepth;
+ 	float x, y, dBlocker;
  	int depthCount = 0;
- 	
+ 	float dBlockerTot = 0.0;
+ 	//blockersamplewidth = (dr - near/) / dr * lightwidth
  	//blocker search step
+ 	
+ 	float dReceiver = DepthToLinear(shadowCoord.z);
+ 	float zNear = 0.1;
+ 	
+ 	
+ 	blockerSampleWidth = (dReceiver - zNear) / dReceiver * LightWidth;
+ 	
  	for(y = -blockerSampleWidth; y <= blockerSampleWidth; y+=1.0) {
  		for (x = -blockerSampleWidth; x <= blockerSampleWidth; x+=1.0) {
- 			tempDepth = texture2D(ShadowMap, shadowCoord.xy + vec2(x / ShadowMapWidth, y / ShadowMapHeight)).w;
- 			if (tempDepth + bias < shadowCoord.z) {
- 				depthBlocker += tempDepth;
+ 			dBlocker = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy + vec2(x / ShadowMapWidth, y / ShadowMapHeight)).x);
+ 			if (dReceiver > dBlocker + bias) {
+ 				dBlockerTot += dBlocker;
  				depthCount += 1;
 			}
 		}
 	}
 	if (depthCount > 0) {
-		depthBlocker /= depthCount; // average the depths
+		float dBlockerAvg = dBlockerTot / float(depthCount); // average the depths
 		
 		// Penumbra Estimation
-		float widthPenumbra = (shadowCoord.z - depthBlocker) * LightWidth / depthBlocker;
+		float widthPenumbra = abs((dReceiver - dBlockerAvg) / dBlockerAvg * LightWidth);
+		widthPenumbra = max(widthPenumbra, 1.0);
 		
 		//Variable PCF
-		float scale = 10.0;
+		float scale = 2.0;
 		float sampleWidth = widthPenumbra * scale;
 	 	float n = pow(2.0 * sampleWidth + 1.0, 2.0);
 	 	float shadow = 0.0;
 	 	
-		for(y = -sampleWidth; y <= sampleWidth; y+=1.0)
-			for(x = -sampleWidth; x <= sampleWidth; x+=1.0)
+		for(y = -sampleWidth; y <= sampleWidth; y+=1.0) {
+			for(x = -sampleWidth; x <= sampleWidth; x+=1.0) {
 				shadow += getShadowVal(shadowCoord, vec2(x / ShadowMapWidth, y / ShadowMapHeight));
+			}
+		}
+		
 		return shadow / n;
 	}
 	else {
