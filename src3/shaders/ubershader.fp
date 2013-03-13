@@ -79,8 +79,9 @@ float DepthToLinear(float value)
 float getShadowVal(vec4 shadowCoord, vec2 offset) 
 {
 	// TODO PA3: Implement this function (see above).
-	float depth = texture2D(ShadowMap, shadowCoord.xy + vec2(offset.x / shadowCoord.w, offset.y / shadowCoord.w)).w;
-	return (depth > shadowCoord.z ? 1.0 : 0.0);
+	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy + vec2(offset.x / shadowCoord.w, offset.y / shadowCoord.w)).w);
+	//return (depth > shadowCoord.z ? 1.0 : 0.0);
+	return (shadowCoord.z > depth + bias ? 0.0 : 1.0);
 }
 
 /** Calculates regular shadow map algorithm shadow strength
