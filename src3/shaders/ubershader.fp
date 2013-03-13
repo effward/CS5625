@@ -89,11 +89,11 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  float getDefaultShadowMapVal(vec4 shadowCoord)
  {
  	// TODO PA3: Implement this function (see above).
- 	float depth = texture2D(ShadowMap, shadowCoord.xy);
-	return (depth + bias > 0.999 ? 1.0 : 0.0);
+ 	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy).x);
+	//return (depth - shadowCoord.z + 13);// + bias > shadowCoord.z ? 1.0 : 0.0);
 	//return max(0.0, min(1.0, shadowCoord.y));
 	//return shadowCoord.z - 10;
-	//return (int(shadowCoord.z) % 2 == 0 && int(shadowCoord.x) % 2 == 0 && int(shadowCoord.y) % 2 == 0 ? 1.0 : 0.0);
+	return (int(shadowCoord.z) % 2 == 0 && int(shadowCoord.x) % 2 == 0 && int(shadowCoord.y) % 2 == 0 ? 1.0 : 0.0);
 	
  }
  
@@ -104,12 +104,15 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  float getPCFShadowMapVal(vec4 shadowCoord)
  {
  	// TODO PA3: Implement this function (see above).
+ 	/*
  	float x,y,n,shadow;
  	n = pow(2.0 * ShadowSampleWidth + 1.0, 2.0);
  	for(y = -ShadowSampleWidth; y <= ShadowSampleWidth; y+=1.0)
  		for (x = -ShadowSampleWidth; x <= ShadowSampleWidth; x+=1.0)
  			shadow += getShadowVal(shadowCoord, vec2(x,y));
  	return shadow / n;
+ 	*/
+ 	return 1.0;
  }
  
  /** Calculates PCSS shadow map algorithm shadow strength
@@ -122,12 +125,16 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  	float far = 100.0;
  	
  	// TODO PA3: Implement this function (see above).
+ 	/*
  	float x,y,n,shadow, depth;
  	n = pow(2.0 * ShadowSampleWidth + 1.0, 2.0);
  	for(y = -ShadowSampleWidth; y <= ShadowSampleWidth; y+=1.0)
  		for (x = -ShadowSampleWidth; x <= ShadowSampleWidth; x+=1.0)
  			depth += texture2D(ShadowMap, shadowCoord.xy);
+ 			
+ 	*/
  	return 1.0;
+ 	
  }
 
 /** Gets the shadow value based on the current shadowing mode
@@ -138,7 +145,7 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  */
 float getShadowStrength(vec3 position) {
 	// TODO PA3: Transform position to ShadowCoord
-	vec4 ShadowCoord = LightMatrix * (InverseViewMatrix * vec4(position, 1.0));
+	vec4 ShadowCoord =  LightMatrix * (InverseViewMatrix * vec4(position, 1.0));
 	
 	if (ShadowMode == DEFAULT_SHADOW_MAP)
 	{

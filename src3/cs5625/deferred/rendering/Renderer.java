@@ -461,20 +461,18 @@ public class Renderer
 			//Grab matrices from the shadow camera.
 			Matrix4f lightTransf = shadowCamera.getViewMatrix();
 			Matrix4f lightProj = shadowCamera.getProjectionMatrix(1.0f, 1.0f);
-			//lightTransf.mul(lightProj); //Multiply them together...
+			//lightProj.invert();
+			//lightTransf.mul(lightProj);
 			lightProj.mul(lightTransf);
 	
 			//Grab matrix from the camera.
 			Matrix4f camTransf = camera.getWorldSpaceTransformationMatrix4f();
-			Matrix4f camProj = camera.getProjectionMatrix(mViewportWidth, mViewportHeight);
-			//camProj.invert();
-			camProj.mul(camTransf);//camTransf.mul(camProj);
 			
 			//Store in column-major arrays
 			for (int col = 0; col < 4; col++) {
 				for (int row = 0; row < 4; row++) {
 					lightMatrix[row + col * 4] = lightProj.getElement(row, col);
-					inverseViewMatrix[row + col * 4] = camProj.getElement(row, col);
+					inverseViewMatrix[row + col * 4] = camTransf.getElement(row, col);
 				}
 			}
 			
