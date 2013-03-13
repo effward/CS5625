@@ -79,8 +79,9 @@ float DepthToLinear(float value)
 float getShadowVal(vec4 shadowCoord, vec2 offset) 
 {
 	// TODO PA3: Implement this function (see above).
-	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy + vec2(offset.x / shadowCoord.w, offset.y / shadowCoord.w)).w);
-	//return (depth > shadowCoord.z ? 1.0 : 0.0);
+	float depth = DepthToLinear(texture2D(ShadowMap, (shadowCoord.xy + vec2(offset.x, offset.y)) / shadowCoord.w).w);
+	//return (depth > 1.00 ? 0.0 : 1.0);
+	//return (depth > 1.01 ? 0.0 : 1.0);
 	return (shadowCoord.z > depth + bias ? 0.0 : 1.0);
 }
 
@@ -91,15 +92,17 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  float getDefaultShadowMapVal(vec4 shadowCoord)
  {
  	// TODO PA3: Implement this function (see above).
- 	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy).x);
+ 	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy).z);
 	//return (depth - shadowCoord.z + 13);// + bias > shadowCoord.z ? 1.0 : 0.0);
 	//return max(0.0, min(1.0, shadowCoord.y));
 	//return shadowCoord.z - 10;
-	return (int(shadowCoord.z) % 2 == 0 && int(shadowCoord.x) % 2 == 0 && int(shadowCoord.y) % 2 == 0 ? 1.0 : 0.0);
+	//return (int(shadowCoord.z) % 2 == 0 && int(shadowCoord.x) % 2 == 0 && int(shadowCoord.y) % 2 == 0 ? 1.0 : 0.0);
 
-
+	//return (depth - shadowCoord.z < 0.0 ? 0.0 : 1.0);
+	//return (depth > 1.01 ? 0.0 : 1.0);
+	
 	//return (depth > shadowCoord.z ? 1.0 : 0.0);
-	//return getShadowVal(shadowCoord, vec2(0,0));
+	return getShadowVal(shadowCoord, vec2(0,0));
 
 	
  }
@@ -141,14 +144,14 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  	for(y = -blockerSampleWidth; y <= blockerSampleWidth; y+=1.0) {
  		for (x = -blockerSampleWidth; x <= blockerSampleWidth; x+=1.0) {
  			tempDepth = texture2D(ShadowMap, shadowCoord.xy).w;
- 			if (tempDepth < shadowCoord.z) {
+ 			if (tempDepth + bias < shadowCoord.z) {
  				depthBlocker += tempDepth;
  				depthCount += 1;
 			}
 		}
 	}
 	if (depthCount > 0) {
-		depthBlocker /= depthCount;
+		depthBlocker /= depthCount; // average the depths
 		
 		// Penumbra Estimation
 		float widthPenumbra = (shadowCoord.z - depthBlocker) * LightWidth / depthBlocker;
