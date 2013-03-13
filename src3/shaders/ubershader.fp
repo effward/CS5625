@@ -79,7 +79,8 @@ float DepthToLinear(float value)
 float getShadowVal(vec4 shadowCoord, vec2 offset) 
 {
 	// TODO PA3: Implement this function (see above).
-	return texture2D(ShadowMap, shadowCoord.xy + vec2(offset.x / shadowCoord.w, offset.y / shadowCoord.w)).w;
+	float depth = texture2D(ShadowMap, shadowCoord.xy + vec2(offset.x / shadowCoord.w, offset.y / shadowCoord.w)).w;
+	return (depth > shadowCoord.z ? 1.0 : 0.0);
 }
 
 /** Calculates regular shadow map algorithm shadow strength
@@ -89,8 +90,9 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  float getDefaultShadowMapVal(vec4 shadowCoord)
  {
  	// TODO PA3: Implement this function (see above).
- 	float depth = texture2D(ShadowMap, shadowCoord.xy);
-	return (depth > shadowCoord.z ? 1.0 : 0.0);
+ 	//float depth = texture2D(ShadowMap, shadowCoord.xy);
+	//return (depth > shadowCoord.z ? 1.0 : 0.0);
+	return getShadowVal(shadowCoord, vec2(0,0));
 	
  }
  
@@ -117,13 +119,27 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  {
  	float near = 0.1;
  	float far = 100.0;
+ 	float blockerSampleWidth = 2.0;
  	
  	// TODO PA3: Implement this function (see above).
- 	float x,y,n,shadow, depth;
+ 	float x,y,n,shadow,depth,tempDepth;
+ 	int depthCount = 0;
  	n = pow(2.0 * ShadowSampleWidth + 1.0, 2.0);
- 	for(y = -ShadowSampleWidth; y <= ShadowSampleWidth; y+=1.0)
- 		for (x = -ShadowSampleWidth; x <= ShadowSampleWidth; x+=1.0)
- 			depth += texture2D(ShadowMap, shadowCoord.xy);
+ 	
+ 	//blocker search step
+ 	for(y = -blockerSampleWidth; y <= blockerSampleWidth; y+=1.0) {
+ 		for (x = -blockerSampleWidth; x <= blockerSampleWidth; x+=1.0) {
+ 			tempDepth = texture2D(ShadowMap, shadowCoord.xy).w;
+ 			if (tempDepth < shadowCoord.z) {
+ 				depth += tempDepth;
+ 				depthCount += 1;
+			}
+		}
+	}
+	if (depthCount > 0)
+		depth /= depthCount;
+	
+	
  	return 1.0;
  }
 
