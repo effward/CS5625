@@ -76,10 +76,8 @@ float DepthToLinear(float value)
 
 /** Returns a binary value for if this location is shadowed. 0 = shadowed, 1 = not shadowed.
  */
-float getShadowVal(vec4 shadowCoord, vec2 offset) 
-{
-	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy * 0.5 + vec2(0.5, 0.5)));
-	
+float getShadowVal(vec4 shadowCoord, vec2 offset) {
+	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy * 0.5 + vec2(0.5, 0.5) + offset).x);
 	return (DepthToLinear(shadowCoord.z) < depth - 0.1 + bias ? 1.0 : 0.0);
 }
 
@@ -89,21 +87,9 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  */
  float getDefaultShadowMapVal(vec4 shadowCoord)
  {
- 	// TODO PA3: Implement this function (see above).
- 	//float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy * 0.5 + vec2(0.5, 0.5)));
-	//return (depth - 0.1 + bias > DepthToLinear(shadowCoord.z) ? 1.0 : 0.0);
-	//return max(0.0, min(1.0, depth));
-	//return shadowCoord.z - 10;
 	//return (int(shadowCoord.z) % 2 == 0 && int(shadowCoord.x) % 2 == 0 && int(shadowCoord.y) % 2 == 0 ? 1.0 : 0.0);
 
-
-	//return (depth - shadowCoord.z < 0.0 ? 0.0 : 1.0);
-	//return (depth > 1.01 ? 0.0 : 1.0);
-	
-	//return (depth > shadowCoord.z ? 1.0 : 0.0);
 	return getShadowVal(shadowCoord, vec2(0,0));
-
-	
  }
  
 /** Calculates PCF shadow map algorithm shadow strength
@@ -118,7 +104,7 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  	n = pow(2.0 * ShadowSampleWidth + 1.0, 2.0);
  	for(y = -ShadowSampleWidth; y <= ShadowSampleWidth; y+=1.0)
  		for (x = -ShadowSampleWidth; x <= ShadowSampleWidth; x+=1.0)
- 			shadow += getShadowVal(shadowCoord, vec2(x,y));
+ 			shadow += getShadowVal(shadowCoord, vec2(x / ShadowMapWidth, y / ShadowMapHeight));
  	return shadow / n;
  	
  	//return 1.0;
@@ -135,14 +121,14 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  	float blockerSampleWidth = 2.0;
  	
  	// TODO PA3: Implement this function (see above).
-	/*
+	
  	float x,y,depthBlocker,tempDepth;
  	int depthCount = 0;
  	
  	//blocker search step
  	for(y = -blockerSampleWidth; y <= blockerSampleWidth; y+=1.0) {
  		for (x = -blockerSampleWidth; x <= blockerSampleWidth; x+=1.0) {
- 			tempDepth = texture2D(ShadowMap, shadowCoord.xy).w;
+ 			tempDepth = texture2D(ShadowMap, shadowCoord.xy + vec2(x / ShadowMapWidth, y / ShadowMapHeight)).w;
  			if (tempDepth + bias < shadowCoord.z) {
  				depthBlocker += tempDepth;
  				depthCount += 1;
@@ -163,14 +149,13 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
 	 	
 		for(y = -sampleWidth; y <= sampleWidth; y+=1.0)
 			for(x = -sampleWidth; x <= sampleWidth; x+=1.0)
-				shadow += getShadowVal(shadowCoord, vec2(x,y));
+				shadow += getShadowVal(shadowCoord, vec2(x / ShadowMapWidth, y / ShadowMapHeight));
 		return shadow / n;
 	}
 	else {
  		return 1.0;
 	}
-	*/
-	return 1.0;
+	
  }
 
 /** Gets the shadow value based on the current shadowing mode
