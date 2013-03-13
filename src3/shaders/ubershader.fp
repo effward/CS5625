@@ -90,7 +90,10 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  {
  	// TODO PA3: Implement this function (see above).
  	float depth = texture2D(ShadowMap, shadowCoord.xy);
-	return (depth > shadowCoord.z ? 1.0 : 0.0);
+	return (depth + bias > 0.999 ? 1.0 : 0.0);
+	//return max(0.0, min(1.0, shadowCoord.y));
+	//return shadowCoord.z - 10;
+	//return (int(shadowCoord.z) % 2 == 0 && int(shadowCoord.x) % 2 == 0 && int(shadowCoord.y) % 2 == 0 ? 1.0 : 0.0);
 	
  }
  

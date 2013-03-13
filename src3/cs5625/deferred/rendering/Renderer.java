@@ -203,6 +203,7 @@ public class Renderer
 			/* Bind the final scene texture for post-processing. */
 			mGBufferFBO.getColorTexture(GBuffer_FinalSceneIndex).bind(gl, 0);
 			
+			
 			/* Set all bloom shader uniforms. */
 			mBloomShader.bind(gl);
 			gl.glUniform1i(mBloomShader.getUniformLocation(gl, "KernelWidth"), mKernelWidth);
@@ -215,6 +216,7 @@ public class Renderer
 			/* Unbind everything. */
 			mBloomShader.unbind(gl);
 			mGBufferFBO.getColorTexture(GBuffer_FinalSceneIndex).unbind(gl);
+		
 
 			/* Restore attributes (blending and depth-testing) to as they were before. */
 			gl.glPopAttrib();
@@ -264,6 +266,8 @@ public class Renderer
 		{
 			/* No post-processing is required; just display the unaltered scene. */
 			Util.renderTextureFullscreen(gl, mGBufferFBO.getColorTexture(GBuffer_FinalSceneIndex));
+			
+			
 		}
 	}
 	
@@ -448,27 +452,35 @@ public class Renderer
 			// TODO PA3: Set the LightMatrix and InverseViewMatrix uniforms.
 			
 			/* Set LightMatrix, which sends points from world space into (light) camera clip coordinates space. */
-			float[] lightMatrix = new float[16];
-			
-			lightMatrix[0] = 1.0f;
-			lightMatrix[5] = 1.0f;
-			lightMatrix[10] = 1.0f;
-			lightMatrix[15] = 1.0f;
-			
-			gl.glUniformMatrix4fv(mLightMatrixUniformLocation, 1, false, lightMatrix, 0);
-			
-			
 			/* Set InverseViewMatrix, which sends points from the (eye) camera local space into world space. */
+			
+			//Create arrays to store matrices in...
+			float[] lightMatrix = new float[16];
 			float[] inverseViewMatrix = new float[16];
-			inverseViewMatrix[0] = 1.0f;
-			inverseViewMatrix[5] = 1.0f;
-			inverseViewMatrix[10] = 1.0f;
-			inverseViewMatrix[15] = 1.0f;
+
+			//Grab matrices from the shadow camera.
+			Matrix4f lightTransf = shadowCamera.getViewMatrix();
+			Matrix4f lightProj = shadowCamera.getProjectionMatrix(1.0f, 1.0f);
+			//lightTransf.mul(lightProj); //Multiply them together...
+			lightProj.mul(lightTransf);
+	
+			//Grab matrix from the camera.
+			Matrix4f camTransf = camera.getWorldSpaceTransformationMatrix4f();
+			Matrix4f camProj = camera.getProjectionMatrix(mViewportWidth, mViewportHeight);
+			//camProj.invert();
+			camProj.mul(camTransf);//camTransf.mul(camProj);
 			
+			//Store in column-major arrays
+			for (int col = 0; col < 4; col++) {
+				for (int row = 0; row < 4; row++) {
+					lightMatrix[row + col * 4] = lightProj.getElement(row, col);
+					inverseViewMatrix[row + col * 4] = camProj.getElement(row, col);
+				}
+			}
 			
-			gl.glUniformMatrix4fv(mInverseViewMatrixUniformLocation, 1, false, inverseViewMatrix, 0);
-			
-			
+			//Pass into uniforms.
+			gl.glUniformMatrix4fv(mLightMatrixUniformLocation, 1, false, lightMatrix, 0);
+			gl.glUniformMatrix4fv(mInverseViewMatrixUniformLocation, 1, false, inverseViewMatrix, 0);		
 			
 			
 			gl.glUniform1f(mBiasUniformLocation, mBias);
