@@ -90,11 +90,11 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  float getDefaultShadowMapVal(vec4 shadowCoord)
  {
  	// TODO PA3: Implement this function (see above).
- 	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy).x);
-	//return (depth - shadowCoord.z + 13);// + bias > shadowCoord.z ? 1.0 : 0.0);
-	//return max(0.0, min(1.0, shadowCoord.y));
+ 	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy * 0.5 + vec2(0.5, 0.5)));
+	return (depth - 0.1 + bias > DepthToLinear(shadowCoord.z) ? 1.0 : 0.0);
+	//return max(0.0, min(1.0, depth));
 	//return shadowCoord.z - 10;
-	return (int(shadowCoord.z) % 2 == 0 && int(shadowCoord.x) % 2 == 0 && int(shadowCoord.y) % 2 == 0 ? 1.0 : 0.0);
+	//return (int(shadowCoord.z) % 2 == 0 && int(shadowCoord.x) % 2 == 0 && int(shadowCoord.y) % 2 == 0 ? 1.0 : 0.0);
 
 
 	//return (depth > shadowCoord.z ? 1.0 : 0.0);
@@ -132,7 +132,7 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  	float blockerSampleWidth = 2.0;
  	
  	// TODO PA3: Implement this function (see above).
-
+	/*
  	float x,y,depthBlocker,tempDepth;
  	int depthCount = 0;
  	
@@ -166,7 +166,8 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
 	else {
  		return 1.0;
 	}
-
+	*/
+	return 1.0;
  }
 
 /** Gets the shadow value based on the current shadowing mode
@@ -178,6 +179,7 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
 float getShadowStrength(vec3 position) {
 	// TODO PA3: Transform position to ShadowCoord
 	vec4 ShadowCoord =  LightMatrix * (InverseViewMatrix * vec4(position, 1.0));
+	ShadowCoord = ShadowCoord / ShadowCoord.w; //perspective divide
 	
 	if (ShadowMode == DEFAULT_SHADOW_MAP)
 	{
