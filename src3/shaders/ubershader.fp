@@ -78,10 +78,9 @@ float DepthToLinear(float value)
  */
 float getShadowVal(vec4 shadowCoord, vec2 offset) 
 {
-	// TODO PA3: Implement this function (see above).
-	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy + vec2(offset.x / shadowCoord.w, offset.y / shadowCoord.w)).w);
-	//return (depth > shadowCoord.z ? 1.0 : 0.0);
-	return (shadowCoord.z > depth + bias ? 0.0 : 1.0);
+	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy * 0.5 + vec2(0.5, 0.5)));
+	
+	return (DepthToLinear(shadowCoord.z) < depth - 0.1 + bias ? 1.0 : 0.0);
 }
 
 /** Calculates regular shadow map algorithm shadow strength
@@ -91,15 +90,15 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  float getDefaultShadowMapVal(vec4 shadowCoord)
  {
  	// TODO PA3: Implement this function (see above).
- 	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy * 0.5 + vec2(0.5, 0.5)));
-	return (depth - 0.1 + bias > DepthToLinear(shadowCoord.z) ? 1.0 : 0.0);
+ 	//float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy * 0.5 + vec2(0.5, 0.5)));
+	//return (depth - 0.1 + bias > DepthToLinear(shadowCoord.z) ? 1.0 : 0.0);
 	//return max(0.0, min(1.0, depth));
 	//return shadowCoord.z - 10;
 	//return (int(shadowCoord.z) % 2 == 0 && int(shadowCoord.x) % 2 == 0 && int(shadowCoord.y) % 2 == 0 ? 1.0 : 0.0);
 
 
 	//return (depth > shadowCoord.z ? 1.0 : 0.0);
-	//return getShadowVal(shadowCoord, vec2(0,0));
+	return getShadowVal(shadowCoord, vec2(0,0));
 
 	
  }
@@ -111,15 +110,15 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  float getPCFShadowMapVal(vec4 shadowCoord)
  {
  	// TODO PA3: Implement this function (see above).
- 	/*
+ 	
  	float x,y,n,shadow;
  	n = pow(2.0 * ShadowSampleWidth + 1.0, 2.0);
  	for(y = -ShadowSampleWidth; y <= ShadowSampleWidth; y+=1.0)
  		for (x = -ShadowSampleWidth; x <= ShadowSampleWidth; x+=1.0)
  			shadow += getShadowVal(shadowCoord, vec2(x,y));
  	return shadow / n;
- 	*/
- 	return 1.0;
+ 	
+ 	//return 1.0;
  }
  
  /** Calculates PCSS shadow map algorithm shadow strength
