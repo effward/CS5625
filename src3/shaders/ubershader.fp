@@ -51,7 +51,7 @@ uniform float LightWidth;
 
 #define DEFAULT_SHADOW_MAP 0
 #define PCF_SHADOW_MAP 1
-#define PCSS SHADOW_MAP 2
+#define PCSS_SHADOW_MAP 2
 
 /* Pass the shadow camera Projection * View matrix to help transform points, as well the Camera inverse-view Matrix */
 uniform mat4 LightMatrix;
@@ -79,7 +79,7 @@ float DepthToLinear(float value)
 float getShadowVal(vec4 shadowCoord, vec2 offset) 
 {
 	// TODO PA3: Implement this function (see above).
-	return 1.0;
+	return texture2D(ShadowMap, shadowCoord.xy + vec2(offset.x / shadowCoord.w, offset.y / shadowCoord.w));
 }
 
 /** Calculates regular shadow map algorithm shadow strength
@@ -101,7 +101,12 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  float getPCFShadowMapVal(vec4 shadowCoord)
  {
  	// TODO PA3: Implement this function (see above).
- 	return 1.0;
+ 	float x,y,n,shadow;
+ 	n = pow(2.0 * ShadowSampleWidth + 1), 2.0);
+ 	for(y = -ShadowSampleWidth; y <= ShadowSampleWidth; y+=1.0)
+ 		for (x = -ShadowSampleWidth; x <= ShadowSampleWidth; x+=1.0)
+ 			shadow += getShadowVal(shadowCoord, vec2(x,y));
+ 	return shadow / n;
  }
  
  /** Calculates PCSS shadow map algorithm shadow strength
