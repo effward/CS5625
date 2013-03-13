@@ -79,7 +79,7 @@ float DepthToLinear(float value)
 float getShadowVal(vec4 shadowCoord, vec2 offset) 
 {
 	// TODO PA3: Implement this function (see above).
-	return texture2D(ShadowMap, shadowCoord.xy + vec2(offset.x / shadowCoord.w, offset.y / shadowCoord.w));
+	return texture2D(ShadowMap, shadowCoord.xy + vec2(offset.x / shadowCoord.w, offset.y / shadowCoord.w)).w;
 }
 
 /** Calculates regular shadow map algorithm shadow strength
@@ -102,7 +102,7 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  {
  	// TODO PA3: Implement this function (see above).
  	float x,y,n,shadow;
- 	n = pow(2.0 * ShadowSampleWidth + 1), 2.0);
+ 	n = pow(2.0 * ShadowSampleWidth + 1.0, 2.0);
  	for(y = -ShadowSampleWidth; y <= ShadowSampleWidth; y+=1.0)
  		for (x = -ShadowSampleWidth; x <= ShadowSampleWidth; x+=1.0)
  			shadow += getShadowVal(shadowCoord, vec2(x,y));
@@ -119,6 +119,11 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  	float far = 100.0;
  	
  	// TODO PA3: Implement this function (see above).
+ 	float x,y,n,shadow, depth;
+ 	n = pow(2.0 * ShadowSampleWidth + 1.0, 2.0);
+ 	for(y = -ShadowSampleWidth; y <= ShadowSampleWidth; y+=1.0)
+ 		for (x = -ShadowSampleWidth; x <= ShadowSampleWidth; x+=1.0)
+ 			depth += texture2D(ShadowMap, shadowCoord.xy);
  	return 1.0;
  }
 
