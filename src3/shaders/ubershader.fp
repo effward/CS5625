@@ -97,6 +97,9 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
 	//return (int(shadowCoord.z) % 2 == 0 && int(shadowCoord.x) % 2 == 0 && int(shadowCoord.y) % 2 == 0 ? 1.0 : 0.0);
 
 
+	//return (depth - shadowCoord.z < 0.0 ? 0.0 : 1.0);
+	//return (depth > 1.01 ? 0.0 : 1.0);
+	
 	//return (depth > shadowCoord.z ? 1.0 : 0.0);
 	return getShadowVal(shadowCoord, vec2(0,0));
 
@@ -140,14 +143,14 @@ float getShadowVal(vec4 shadowCoord, vec2 offset)
  	for(y = -blockerSampleWidth; y <= blockerSampleWidth; y+=1.0) {
  		for (x = -blockerSampleWidth; x <= blockerSampleWidth; x+=1.0) {
  			tempDepth = texture2D(ShadowMap, shadowCoord.xy).w;
- 			if (tempDepth < shadowCoord.z) {
+ 			if (tempDepth + bias < shadowCoord.z) {
  				depthBlocker += tempDepth;
  				depthCount += 1;
 			}
 		}
 	}
 	if (depthCount > 0) {
-		depthBlocker /= depthCount;
+		depthBlocker /= depthCount; // average the depths
 		
 		// Penumbra Estimation
 		float widthPenumbra = (shadowCoord.z - depthBlocker) * LightWidth / depthBlocker;
