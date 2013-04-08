@@ -475,7 +475,7 @@ public class Renderer
 			//Store in column-major arrays
 			for (int col = 0; col < 4; col++) {
 				for (int row = 0; row < 4; row++) {
-					lightMatrix[row + col * 4] = lightTransf.getElement(row, col);
+					lightMatrix[row + col * 4] = lightProj.getElement(row, col);
 					inverseViewMatrix[row + col * 4] = camTransf.getElement(row, col);
 				}
 			}
