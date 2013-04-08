@@ -37,15 +37,6 @@ public abstract class SceneController implements MouseListener, MouseMotionListe
 	protected Renderer mRenderer = null;
 	protected SceneObject mSceneRoot = new SceneObject();
 	protected Camera mCamera = new Camera();
-	protected Camera mShadowCamera = new Camera();
-	
-	protected boolean hasShadows = false;
-	
-	/*
-	 * Shadow mode state. Put in here for convenience
-	 */
-	protected boolean isShadowCamMode = false;
-	protected boolean moveShadowCam = false;
 	
 	@SuppressWarnings("unused")
 	private static SceneController globalController = null;
@@ -79,9 +70,7 @@ public abstract class SceneController implements MouseListener, MouseMotionListe
 
 		//globalController = new DefaultSceneController();
 		//globalController = new ManyLightsSceneController();
-		//globalController = new MaterialTestSceneController();
-		//globalController = new TexturesTestSceneController();
-		globalController = new ShadowMapSceneController();
+		globalController = new SSAOSceneController();
 	}
 	
 	/*
@@ -126,7 +115,7 @@ public abstract class SceneController implements MouseListener, MouseMotionListe
 	 */
 	public void renderGL(GLAutoDrawable drawable)
 	{
-		mRenderer.render(drawable, mSceneRoot, isShadowCamMode ? mShadowCamera : mCamera, !isShadowCamMode && hasShadows ? mShadowCamera : null);
+		mRenderer.render(drawable, mSceneRoot, mCamera);
 	}
 
 	/**
@@ -138,7 +127,6 @@ public abstract class SceneController implements MouseListener, MouseMotionListe
 	{
 		mRenderer = new Renderer();
 		mRenderer.init(drawable);
-		mShadowCamera.setIsShadowMapCamera(true);
 		initializeScene();
 	}
 	
@@ -175,7 +163,7 @@ public abstract class SceneController implements MouseListener, MouseMotionListe
 	@Override
 	public void keyPressed(KeyEvent key)
 	{
-		moveShadowCam = key.isShiftDown();
+		/* No default response. */
 	}
 
 	/**
@@ -184,7 +172,7 @@ public abstract class SceneController implements MouseListener, MouseMotionListe
 	@Override
 	public void keyReleased(KeyEvent key)
 	{
-		moveShadowCam = key.isShiftDown();
+		/* No default response. */
 	}
 
 	/**
@@ -264,52 +252,41 @@ public abstract class SceneController implements MouseListener, MouseMotionListe
 			System.out.println("Bloom Width: " + mRenderer.getBloomWidth());
 			requiresRender();
 		}
-		else if (c == 's' && hasShadows) {
-			isShadowCamMode = !isShadowCamMode;
-			mShadowCamera.setIsShadowMapCamera(!mShadowCamera.getIsShadowMapCamera());
-			System.out.println("Now controlling the " + (isShadowCamMode ? "shadow" : "main") + " camera");
+		else if (c == 's')
+		{
+			mRenderer.setSSAOEnabled(!mRenderer.getSSAOEnabled());
+			System.out.println("SSAO enabled: " + mRenderer.getSSAOEnabled());
 			requiresRender();
 		}
-		else if (c == 'd') {
-			mRenderer.setShadowMapBias(mRenderer.getShadowMapBias() - 0.00001f);
-			System.out.println("Shadow Map Bias: " + mRenderer.getShadowMapBias());
+		else if (c == 'r')
+		{
+			mRenderer.setSSAORadius(Math.max(mRenderer.getSSAORadius() - 0.01f, 0.01f));
+			System.out.println("SSAO radius: " + mRenderer.getSSAORadius());
 			requiresRender();
 		}
-		else if (c == 'D') {
-			mRenderer.setShadowMapBias(mRenderer.getShadowMapBias() + 0.00001f);
-			System.out.println("Shadow Map Bias: " + mRenderer.getShadowMapBias());
+		else if (c == 'R')
+		{
+			mRenderer.setSSAORadius(mRenderer.getSSAORadius() + 0.01f);
+			System.out.println("SSAO radius: " + mRenderer.getSSAORadius());
 			requiresRender();
 		}
-		else if (c == 'a') {
-			mRenderer.incrementShadowMode();
-			int mode = mRenderer.getShadowMode();
-			String modeString = (mode == 0 ? "DEFAULT SHADOWMAP" : (mode == 1 ? "PCF SHADOWMAP" : "PCSS SHADOWMAP"));
-			System.out.println("Shadow Map mode: " + modeString);
+		else if (c == 'e')
+		{
+			int min = 5;
+			int max = mRenderer.getMaxSSAORays();
+			
+			mRenderer.createNewSSAORays(Math.max(min, Math.min(max, mRenderer.getSSAORayCount() - 5)));
+			System.out.println("SSAO rays: " + mRenderer.getSSAORayCount());
 			requiresRender();
 		}
-		else if (c == 'f') {
-			if (mRenderer.getShadowMode() == 1) {
-				mRenderer.setShadowSampleWidth(mRenderer.getShadowSampleWidth() - 1);
-				System.out.println("Shadow Map Sample Width: " + mRenderer.getShadowSampleWidth());
-				requiresRender();
-			}
-			if (mRenderer.getShadowMode() == 2) {
-				mRenderer.setLightWidth(mRenderer.getLightWidth() - 1);
-				System.out.println("Shadow Map Light Width: " + mRenderer.getLightWidth());
-				requiresRender();
-			}
-		}
-		else if (c == 'F') {
-			if (mRenderer.getShadowMode() == 1) {
-				mRenderer.setShadowSampleWidth(mRenderer.getShadowSampleWidth() + 1);
-				System.out.println("Shadow Map Sample Width: " + mRenderer.getShadowSampleWidth());
-				requiresRender();
-			}
-			if (mRenderer.getShadowMode() == 2) {
-				mRenderer.setLightWidth(mRenderer.getLightWidth() + 1);
-				System.out.println("Shadow Map Light Width: " + mRenderer.getLightWidth());
-				requiresRender();
-			}
+		else if (c == 'E')
+		{
+			int min = 5;
+			int max = mRenderer.getMaxSSAORays();
+			
+			mRenderer.createNewSSAORays(Math.max(min, Math.min(max, mRenderer.getSSAORayCount() + 5)));
+			System.out.println("SSAO rays: " + mRenderer.getSSAORayCount());
+			requiresRender();
 		}
 	}
 

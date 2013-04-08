@@ -26,8 +26,10 @@ uniform sampler2DRect PositionBuffer;
 uniform sampler2DRect MaterialParams1Buffer;
 uniform sampler2DRect MaterialParams2Buffer;
 uniform sampler2DRect SilhouetteBuffer;
+uniform sampler2DRect SSAOBuffer;
 
 uniform bool EnableToonShading;
+uniform bool EnableSSAO;
 
 /* Uniform specifying the sky (background) color. */
 uniform vec3 SkyColor;
@@ -38,24 +40,6 @@ uniform vec3 LightPositions[MAX_LIGHTS];
 uniform vec3 LightAttenuations[MAX_LIGHTS];
 uniform vec3 LightColors[MAX_LIGHTS];
 
-/* Shadow depth textures and information */
-uniform int HasShadowMaps;
-uniform sampler2D ShadowMap;
-uniform int ShadowMode;
-uniform vec3 ShadowCamPosition;
-uniform float bias;
-uniform float ShadowSampleWidth;
-uniform float ShadowMapWidth;
-uniform float ShadowMapHeight;
-uniform float LightWidth;
-
-#define DEFAULT_SHADOW_MAP 0
-#define PCF_SHADOW_MAP 1
-#define PCSS_SHADOW_MAP 2
-
-/* Pass the shadow camera Projection * View matrix to help transform points, as well the Camera inverse-view Matrix */
-uniform mat4 LightMatrix;
-uniform mat4 InverseViewMatrix;
 
 /* Decodes a vec2 into a normalized vector See Renderer.java for more info. */
 vec3 decode(vec2 v)
@@ -66,152 +50,13 @@ vec3 decode(vec2 v)
 	return n;
 }
 
-// Converts the depth buffer value to a linear value
-float DepthToLinear(float value)
-{
-	float near = 0.1;
-	float far = 100.0;
-	return (2.0 * near) / (far + near - value * (far - near));
-}
-
-/** Returns a binary value for if this location is shadowed. 0 = shadowed, 1 = not shadowed.
- */
-<<<<<<< HEAD
-float getShadowVal(vec4 shadowCoord, vec2 offset) 
-{
-	//float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy * 0.5 + vec2(0.5, 0.5)));
-	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy + offset));
-	return (shadowCoord.z > depth + bias ? 0.0 : 1.0);
-	
-	//return (DepthToLinear(shadowCoord.z) < depth - 0.1 + bias ? 1.0 : 0.0);
-=======
-float getShadowVal(vec4 shadowCoord, vec2 offset) {
-	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy + offset).x);
-	return (DepthToLinear(shadowCoord.z) < depth + bias ? 1.0 : 0.0);
->>>>>>> 2a52363278c863b79543e1af0511b8573148263e
-}
-
-/** Calculates regular shadow map algorithm shadow strength
- *
- * @param shadowCoord The location of the position in the light projection space
- */
- float getDefaultShadowMapVal(vec4 shadowCoord)
- {
-	//return (int(shadowCoord.z) % 2 == 0 && int(shadowCoord.x) % 2 == 0 && int(shadowCoord.y) % 2 == 0 ? 1.0 : 0.0);
-
-	return getShadowVal(shadowCoord, vec2(0,0));
- }
- 
-/** Calculates PCF shadow map algorithm shadow strength
- *
- * @param shadowCoord The location of the position in the light projection space
- */
- float getPCFShadowMapVal(vec4 shadowCoord)
- {
- 	// TODO PA3: Implement this function (see above).
- 	
- 	float x,y,n,shadow;
- 	n = pow(2.0 * ShadowSampleWidth + 1.0, 2.0);
- 	for(y = -ShadowSampleWidth; y <= ShadowSampleWidth; y+=1.0)
- 		for (x = -ShadowSampleWidth; x <= ShadowSampleWidth; x+=1.0)
- 			shadow += getShadowVal(shadowCoord, vec2(x / ShadowMapWidth, y / ShadowMapHeight));
- 	return shadow / n;
- 	
- 	//return 1.0;
- }
- 
- /** Calculates PCSS shadow map algorithm shadow strength
- *
- * @param shadowCoord The location of the position in the light projection space
- */
- float getPCSSShadowMapVal(vec4 shadowCoord)
- {
- 	float near = 0.1;
- 	float far = 100.0;
- 	float blockerSampleWidth = 2.0;
- 	
- 	// TODO PA3: Implement this function (see above).
-	
- 	float x, y, dBlocker;
- 	int depthCount = 0;
- 	float dBlockerTot = 0.0;
- 	//blockersamplewidth = (dr - near/) / dr * lightwidth
- 	//blocker search step
- 	
- 	float dReceiver = DepthToLinear(shadowCoord.z);
- 	float zNear = 0.1;
- 	
- 	
- 	blockerSampleWidth = (dReceiver - zNear) / dReceiver * LightWidth;
- 	
- 	for(y = -blockerSampleWidth; y <= blockerSampleWidth; y+=1.0) {
- 		for (x = -blockerSampleWidth; x <= blockerSampleWidth; x+=1.0) {
- 			dBlocker = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy + vec2(x / ShadowMapWidth, y / ShadowMapHeight)).x);
- 			if (dReceiver > dBlocker + bias) {
- 				dBlockerTot += dBlocker;
- 				depthCount += 1;
-			}
-		}
-	}
-	if (depthCount > 0) {
-		float dBlockerAvg = dBlockerTot / float(depthCount); // average the depths
-		
-		// Penumbra Estimation
-		float widthPenumbra = abs((dReceiver - dBlockerAvg) / dBlockerAvg * LightWidth);
-		widthPenumbra = max(widthPenumbra, 1.0);
-		
-		//Variable PCF
-		float scale = 2.0;
-		float sampleWidth = widthPenumbra * scale;
-	 	float n = pow(2.0 * sampleWidth + 1.0, 2.0);
-	 	float shadow = 0.0;
-	 	
-		for(y = -sampleWidth; y <= sampleWidth; y+=1.0) {
-			for(x = -sampleWidth; x <= sampleWidth; x+=1.0) {
-				shadow += getShadowVal(shadowCoord, vec2(x / ShadowMapWidth, y / ShadowMapHeight));
-			}
-		}
-		
-		return shadow / n;
-	}
-	else {
- 		return 1.0;
-	}
-	
- }
-
-/** Gets the shadow value based on the current shadowing mode
- *
- * @param position The eyespace position of the surface at this fragment
- *
- * @return A 0-1 value for how shadowed the object is. 0 = shadowed and 1 = lit
- */
-float getShadowStrength(vec3 position) {
-	// TODO PA3: Transform position to ShadowCoord
-	vec4 ShadowCoord =  LightMatrix * (InverseViewMatrix * vec4(position, 1.0));
-	ShadowCoord = ShadowCoord / ShadowCoord.w; //perspective divide
-	
-	if (ShadowMode == DEFAULT_SHADOW_MAP)
-	{
-		return getDefaultShadowMapVal(ShadowCoord);
-	}
-	else if (ShadowMode == PCF_SHADOW_MAP)
-	{
-		return getPCFShadowMapVal(ShadowCoord);
-	}
-	else
-	{
-		return getPCSSShadowMapVal(ShadowCoord);
-	}
-}
-
 /**
  * Performs the "3x3 nonlinear filter" mentioned in Decaudin 1996 to detect silhouettes
  * based on the silhouette buffer.
  */
 float silhouetteStrength()
 {
-	// TODO PA3 Prereq (Optional): Paste in your silhouetteStrength code if you like toon shading.
+	// TODO PA4 Prereq (Optional): Paste in your silhouetteStrength code if you like toon shading.
 	return 0.0;
 }
 
@@ -232,7 +77,8 @@ vec3 shadeLambertian(vec3 diffuse, vec3 position, vec3 normal, vec3 lightPositio
 	vec3 lightDirection = normalize(lightPosition - position);
 	float ndotl = max(0.0, dot(normal, lightDirection));
 
-	// TODO PA3 Prereq (Optional): Paste in your n.l and n.h thresholding code if you like toon shading.
+	// TODO PA4 Prereq (Optional): Paste in your n.l and n.h thresholding code if you like toon shading.
+	
 	
 	float r = length(lightPosition - position);
 	float attenuation = 1.0 / dot(lightAttenuation, vec3(1.0, r, r * r));
@@ -264,7 +110,8 @@ vec3 shadeBlinnPhong(vec3 diffuse, vec3 specular, float exponent, vec3 position,
 	float ndotl = max(0.0, dot(normal, lightDirection));
 	float ndoth = max(0.0, dot(normal, halfDirection));
 	
-	// TODO PA3 Prereq (Optional): Paste in your n.l and n.h thresholding code if you like toon shading.
+	// TODO PA4 Prereq (Optional): Paste in your n.l and n.h thresholding code if you like toon shading.
+	
 	
 	float pow_ndoth = (ndotl > 0.0 && ndoth > 0.0 ? pow(ndoth, exponent) : 0.0);
 
@@ -301,30 +148,41 @@ void main()
 		/* Unshaded material is just a constant color. */
 		gl_FragColor.rgb = diffuse;
 	}
+	
+	// TODO PA4 Prereq: Update our Lambertian and Blinn-Phong cases to use your material encoding schemes.
 	else if (materialID == LAMBERTIAN_MATERIAL_ID)
 	{
-		/* Accumulate Lambertian shading for each light. */
-		for (int i = 0; i < NumLights; ++i)
+		vec3 col = vec3(0.0, 0.0, 0.0);
+		for (int l = 0; l < NumLights; l++) 
 		{
-			gl_FragColor.rgb += shadeLambertian(diffuse, position, normal, LightPositions[i], LightColors[i], LightAttenuations[i]);
+			col += shadeLambertian(
+				diffuse, 
+				position, 
+				normal, 
+				LightPositions[l], 
+				LightColors[l], 
+				LightAttenuations[l]
+			);
 		}
+		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
 	}
 	else if (materialID == BLINNPHONG_MATERIAL_ID)
 	{
-		/* Accumulate Blinn-Phong shading for each light. */
-		for (int i = 0; i < NumLights; ++i)
+		vec3 col = vec3(0.0, 0.0, 0.0);
+		for (int l = 0; l < NumLights; l++) 
 		{
-			gl_FragColor.rgb += shadeBlinnPhong(
+			col += shadeBlinnPhong(
 				diffuse,
 				materialParams1.yza,
 				materialParams2.x,
 				position, 
 				normal, 
-				LightPositions[i], 
-				LightColors[i], 
-				LightAttenuations[i]
+				LightPositions[l], 
+				LightColors[l], 
+				LightAttenuations[l]
 			);
 		}
+		gl_FragColor.rgb = vec3(min(col.r, 1.0), min(col.g, 1.0), min(col.b, 1.0));
 	}
 	else
 	{
@@ -337,8 +195,8 @@ void main()
 		gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.0), silhouetteStrength()); 
 	}
 	
-	if (HasShadowMaps == 1 && materialID != 0) {	
-		gl_FragColor.rgb *= getShadowStrength(position);
+	if (EnableSSAO)
+	{
+		gl_FragColor.rgb *= texture2DRect(SSAOBuffer, gl_FragCoord.xy).rgb;
 	}
-	
 }

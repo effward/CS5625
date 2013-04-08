@@ -3,15 +3,16 @@ package cs5625.deferred.rendering;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.glu.GLU;
 import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Color3f;
-import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3f;
 
 import cs5625.deferred.materials.Material;
 import cs5625.deferred.materials.Texture.Datatype;
@@ -55,17 +56,15 @@ public class Renderer
 	/* The GBuffer FBO. */
 	protected FramebufferObject mGBufferFBO;
 	
-	/* The shadow map FBOs */
-	protected FramebufferObject mShadowMapFBO;
-	
 	/* Name the indices in the GBuffer so code is easier to read. */
 	protected final int GBuffer_DiffuseIndex = 0;
 	protected final int GBuffer_PositionIndex = 1;
 	protected final int GBuffer_MaterialIndex1 = 2;
 	protected final int GBuffer_MaterialIndex2 = 3;
 	protected final int GBuffer_GradientsIndex = 4;
-	protected final int GBuffer_FinalSceneIndex = 5;
-	protected final int GBuffer_Count = 6;
+	protected final int GBuffer_SSAOIndex = 5;
+	protected final int GBuffer_FinalSceneIndex = 6;
+	protected final int GBuffer_Count = 7;
 	
 	/* The index of the texture to preview in GBufferFBO, or -1 for no preview. */
 	protected int mPreviewIndex = -1;
@@ -104,34 +103,29 @@ public class Renderer
 	private int mNumLightsUniformLocation = -1;
 	private int mEnableToonShadingUniformLocation = -1;
 	
-	// Shadow mapping uniforms
-	private int mLightMatrixUniformLocation = -1;
-	private int mInverseViewMatrixUniformLocation = -1;
-	private int mShadowMapWidthUniformLocation = -1;
-	private int mShadowMapHeightUniformLocation = -1;
+	/* SSAO modifications to the ubershader. */
+	private int mEnableSSAOUniformLocation = -1;
+	private boolean mEnableSSAO = false;
 	
-	/* The shadow map ubershader locations */
-	private int mHasShadowMapsUniformLocation = -1;
-	private int mShadowTextureLocation = GBuffer_FinalSceneIndex + 1;
-	private int mShadowModeUniformLocation = -1;
+	/* The size of the light uniform arrays in the ubershader. 
+	 * This is queried directly from the shader file. */
+	private int mMaxLightsInUberShader;
 	
+	/* All SSAO variables and uniform locations. */
+	private ShaderProgram mSSAOShader;
+	private int mNumRaysUniformLocation = -1;
+	private int mSampleRaysUniformLocation = -1;
+	private int mSampleRadiusUniformLocation = -1;
+	private int mProjectionMatrixUniformLocation = -1;
+	private int mScreenSizeUniformLocation = -1;
 	
-	/* The current shadow mode */
-	private int mShadowMode = 0;
+	/* The size of the sample rays array in the ssao shader. 
+	 * This is queried directly from the shader file. */
+	private int mMaxSSAORays;
 	
-	/* All of the shadow mapping parameters */
-	private float mBias = 0f;
-	private int mBiasUniformLocation = -1;
-	
-	private int mShadowSampleWidth = 4;
-	private int mShadowSampleWidthUniformLocation = -1;
-	
-	private int mLightWidth = 16;
-	private int mLightWidthUniformLocation = -1;
-	
-	/* The size of the light uniform arrays in the ubershader. */
-	private int mMaxLightsInUberShader = 40;
-	
+	/* Local copies of the SSAO uniform data. */
+	private Vector3f[] mSampleRays = null;
+	private float mSampleRadius = 0.1f;
 	
 	/**
 	 * Renders a single frame of the scene. This is the main method of the Renderer class.
@@ -140,7 +134,7 @@ public class Renderer
 	 * @param sceneRoot The root node of the scene to render.
 	 * @param camera The camera describing the perspective to render from.
 	 */
-	public void render(GLAutoDrawable drawable, SceneObject sceneRoot, Camera camera, Camera shadowCamera)
+	public void render(GLAutoDrawable drawable, SceneObject sceneRoot, Camera camera)
 	{
 		GL2 gl = drawable.getGL().getGL2();		
 				
@@ -149,18 +143,17 @@ public class Renderer
 			/* Reset lights array. It will be re-filled as the scene is traversed. */
 			mLights.clear();
 			
-			if (shadowCamera != null) {
-				fillGBuffer(gl, sceneRoot, shadowCamera);
-			}
-			
 			/* 1. Fill the gbuffer given this scene and camera. */ 
 			fillGBuffer(gl, sceneRoot, camera);
 			
 			/* 2. Compute gradient buffer based on positions and normals, used for toon shading. */
 			computeGradientBuffer(gl);
 			
+			/* Also, compute the SSAO values for each pixel. */
+			computeSSAOBuffer(gl, camera);
+			
 			/* 3. Apply deferred lighting to the g-buffer. At this point, the opaque scene has been rendered. */
-			lightGBuffer(gl, camera, shadowCamera);
+			lightGBuffer(gl, camera);
 
 			/* 4. If we're supposed to preview one gbuffer texture, do that now. 
 			 *    Otherwise, envoke the final render pass (optional post-processing). */
@@ -203,7 +196,6 @@ public class Renderer
 			/* Bind the final scene texture for post-processing. */
 			mGBufferFBO.getColorTexture(GBuffer_FinalSceneIndex).bind(gl, 0);
 			
-			
 			/* Set all bloom shader uniforms. */
 			mBloomShader.bind(gl);
 			gl.glUniform1i(mBloomShader.getUniformLocation(gl, "KernelWidth"), mKernelWidth);
@@ -216,7 +208,6 @@ public class Renderer
 			/* Unbind everything. */
 			mBloomShader.unbind(gl);
 			mGBufferFBO.getColorTexture(GBuffer_FinalSceneIndex).unbind(gl);
-		
 
 			/* Restore attributes (blending and depth-testing) to as they were before. */
 			gl.glPopAttrib();
@@ -266,8 +257,6 @@ public class Renderer
 		{
 			/* No post-processing is required; just display the unaltered scene. */
 			Util.renderTextureFullscreen(gl, mGBufferFBO.getColorTexture(GBuffer_FinalSceneIndex));
-			
-			
 		}
 	}
 	
@@ -281,14 +270,8 @@ public class Renderer
 	private void fillGBuffer(GL2 gl, SceneObject sceneRoot, Camera camera) throws OpenGLException
 	{
 		/* First, bind and clear the gbuffer. */
-		if (!camera.getIsShadowMapCamera()) 
-		{
-			mGBufferFBO.bindSome(gl, new int[]{GBuffer_DiffuseIndex, GBuffer_PositionIndex, GBuffer_MaterialIndex1, GBuffer_MaterialIndex2});
-		}
-		else 
-		{		
-			mShadowMapFBO.bindAll(gl);
-		}
+		mGBufferFBO.bindSome(gl, new int[]{GBuffer_DiffuseIndex, GBuffer_PositionIndex, GBuffer_MaterialIndex1, GBuffer_MaterialIndex2});
+		
 		gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 		
@@ -322,14 +305,7 @@ public class Renderer
 		renderObject(gl, camera, sceneRoot);
 
 		/* GBuffer is filled, so unbind it. */
-		if (!camera.getIsShadowMapCamera()) 
-		{
-			mGBufferFBO.unbind(gl);
-		}	
-		else 
-		{
-			mShadowMapFBO.unbind(gl);
-		}
+		mGBufferFBO.unbind(gl);
 		
 		/* Check for errors after rendering, to help isolate. */
 		OpenGLException.checkOpenGLError(gl);
@@ -376,13 +352,83 @@ public class Renderer
 	}
 	
 	/**
+	 * Computes SSAO values based on the position and normal textures of the GBuffer. 
+	 */
+	private void computeSSAOBuffer(GL2 gl, Camera camera) throws OpenGLException
+	{
+		/* Bind the SSAO buffer as output. */
+		mGBufferFBO.bindOne(gl, GBuffer_SSAOIndex);
+
+		gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
+		
+		/* Save state before we disable depth testing for blitting. */
+		gl.glPushAttrib(GL2.GL_ENABLE_BIT);
+		
+		/* Disable depth test and blend, since we just want to replace the contents of the framebuffer.
+		 * Since we are rendering an opaque fullscreen quad here, we don't bother clearing the buffer
+		 * first. */
+		gl.glDisable(GL2.GL_DEPTH_TEST);
+		gl.glDisable(GL2.GL_BLEND);
+		
+		mGBufferFBO.getColorTexture(GBuffer_DiffuseIndex).bind(gl, 0);
+		mGBufferFBO.getColorTexture(GBuffer_PositionIndex).bind(gl, 1);
+		
+		/* We need to disable interpolation on the g-buffer, otherwise we get ringing artifacts!
+		 * This won't reduce the quality of our ssao because the g-buffer is full resolution. */
+		mGBufferFBO.getColorTexture(GBuffer_DiffuseIndex).enableInterpolation(gl, false);
+		mGBufferFBO.getColorTexture(GBuffer_PositionIndex).enableInterpolation(gl, false);
+		
+		/* Bind the SSAO shader and update the uniforms. */
+		mSSAOShader.bind(gl);
+		
+		float[] projMatrix = Util.fromMatrix4f(camera.getProjectionMatrix(mViewportWidth, mViewportHeight));
+		gl.glUniform1f(mSampleRadiusUniformLocation, mSampleRadius);
+		gl.glUniform2f(mScreenSizeUniformLocation, mViewportWidth, mViewportHeight);
+		gl.glUniformMatrix4fv(mProjectionMatrixUniformLocation, 1, false, projMatrix, 0);
+		
+		if (mSampleRays != null) {
+			if (mSampleRays.length > mMaxSSAORays) {
+				throw new RuntimeException("MAX_RAYS is " + mMaxSSAORays + ". " + mSampleRays.length + " is too many!");
+			}
+			
+			gl.glUniform1i(mNumRaysUniformLocation, mSampleRays.length);
+			for (int i = 0; i < mSampleRays.length; i++) {
+				gl.glUniform3f(mSampleRaysUniformLocation + i, mSampleRays[i].x, mSampleRays[i].y, mSampleRays[i].z);
+			}
+		}
+		else {
+			gl.glUniform1i(mNumRaysUniformLocation, 0);
+		}
+		
+		
+		/* Render. */
+		Util.drawFullscreenQuad(gl, mViewportWidth, mViewportHeight);
+		
+		/* Unbind everything. */
+		mSSAOShader.unbind(gl);
+		
+		/* Re-enable interpolation. */
+		mGBufferFBO.getColorTexture(GBuffer_DiffuseIndex).enableInterpolation(gl, true);
+		mGBufferFBO.getColorTexture(GBuffer_PositionIndex).enableInterpolation(gl, true);
+		
+		mGBufferFBO.getColorTexture(GBuffer_DiffuseIndex).unbind(gl);
+		mGBufferFBO.getColorTexture(GBuffer_PositionIndex).unbind(gl);
+
+		mGBufferFBO.unbind(gl);
+
+		/* Restore attributes (blending and depth-testing) to as they were before. */
+		gl.glPopAttrib();
+	}
+	
+	/**
 	 * Applies lighting to an already-filled gbuffer to produce the final scene. Output is sent 
 	 * to the main framebuffer of the view/window.
 	 * 
 	 * @param gl The OpenGL state.
 	 * @param camera Camera from whose perspective we are rendering.
 	 */
-	private void lightGBuffer(GL2 gl, Camera camera, Camera shadowCamera) throws OpenGLException, ScenegraphException
+	private void lightGBuffer(GL2 gl, Camera camera) throws OpenGLException, ScenegraphException
 	{
 		/* Need some lights, otherwise it will just be black! */
 		if (mLights.size() == 0)
@@ -442,77 +488,15 @@ public class Renderer
 		}
 		
 		/* Ubershader needs to know how many lights. */
-		gl.glUniform1i(mNumLightsUniformLocation, mLights.size());	
-		gl.glUniform1i(mEnableToonShadingUniformLocation, (mEnableToonShading ? 1 : 0));			
-		
-		gl.glUniform1i(mHasShadowMapsUniformLocation, shadowCamera == null ? 0 : 1);
-		gl.glUniform1i(mShadowModeUniformLocation, mShadowMode);
-		
-		if (shadowCamera != null) {
-			// TODO PA3: Set the LightMatrix and InverseViewMatrix uniforms.
-			
-			/* Set LightMatrix, which sends points from world space into (light) camera clip coordinates space. */
-			/* Set InverseViewMatrix, which sends points from the (eye) camera local space into world space. */
-			
-			//Create arrays to store matrices in...
-			float[] lightMatrix = new float[16];
-			float[] inverseViewMatrix = new float[16];
-
-			//Grab matrices from the shadow camera.
-			Matrix4f lightTransf = shadowCamera.getViewMatrix();
-			Matrix4f lightProj = shadowCamera.getProjectionMatrix(mViewportWidth, mViewportHeight);
-	
-			
-			//lightProj.invert();
-			//lightTransf.mul(lightProj);
-			lightProj.mul(lightTransf);
-			
-			Matrix4f normalizeCube = new Matrix4f(
-				0.5f, 0.0f, 0.0f, 0.5f,
-				0.0f, 0.5f, 0.0f, 0.5f,
-				0.0f, 0.0f, 0.5f, 0.5f,
-				0.0f, 0.0f, 0.0f, 1.0f
-			);
-			
-			normalizeCube.mul(lightProj);
-			
-	
-			//Grab matrix from the camera.
-			Matrix4f camTransf = camera.getWorldSpaceTransformationMatrix4f();
-			
-			//Store in column-major arrays
-			for (int col = 0; col < 4; col++) {
-				for (int row = 0; row < 4; row++) {
-					lightMatrix[row + col * 4] = normalizeCube.getElement(row, col);
-					inverseViewMatrix[row + col * 4] = camTransf.getElement(row, col);
-				}
-			}
-			
-			//Pass into uniforms.
-			gl.glUniformMatrix4fv(mLightMatrixUniformLocation, 1, false, lightMatrix, 0);
-			gl.glUniformMatrix4fv(mInverseViewMatrixUniformLocation, 1, false, inverseViewMatrix, 0);		
-			
-			
-			gl.glUniform1f(mBiasUniformLocation, mBias);
-			gl.glUniform1f(mShadowMapWidthUniformLocation, mViewportWidth);
-			gl.glUniform1f(mShadowMapHeightUniformLocation, mViewportHeight);
-			gl.glUniform1f(mShadowSampleWidthUniformLocation, (float) mShadowSampleWidth);
-			gl.glUniform1f(mLightWidthUniformLocation, (float) mLightWidth);
-			
-			mShadowMapFBO.getDepthTexture().bind(gl, mShadowTextureLocation);
-		}
-		
+		gl.glUniform1i(mNumLightsUniformLocation, mLights.size());
+		gl.glUniform1i(mEnableToonShadingUniformLocation, (mEnableToonShading ? 1 : 0));
+		gl.glUniform1i(mEnableSSAOUniformLocation, (mEnableSSAO ? 1 : 0));
 
 		/* Let there be light! */
 		Util.drawFullscreenQuad(gl, mViewportWidth, mViewportHeight);
 		
 		/* Unbind everything. */
 		mUberShader.unbind(gl);
-		
-		if (shadowCamera != null) 
-		{
-			mShadowMapFBO.getDepthTexture().unbind(gl);
-		}
 		
 		for (int i = 0; i < GBuffer_FinalSceneIndex; ++i)
 		{
@@ -860,55 +844,69 @@ public class Renderer
 	}
 	
 	/**
-	 * Sets the shadow map bias
+	 * Turns SSAO on/off in the final scene.
 	 */
-	public void setShadowMapBias(float bias)
+	public void setSSAOEnabled(boolean enable)
 	{
-		mBias = bias;
+		mEnableSSAO = enable;
 	}
 	
 	/**
-	 * Gets the shadow map bias
+	 * Gets the current SSAO enabled state.
 	 */
-	public float getShadowMapBias()
+	public boolean getSSAOEnabled()
 	{
-		return mBias;
+		return mEnableSSAO;
 	}
 	
 	/**
-	 * Increments the shadow mode
+	 * Sets the SSAO sample radius (in pixels).
 	 */
-	public void incrementShadowMode()
+	public void setSSAORadius(float radius)
 	{
-		mShadowMode = (mShadowMode + 1) % 3;
+		mSampleRadius = radius;
 	}
 	
-	public int getShadowMode() {
-		return mShadowMode;
-	}
-	
-	/** Getter and setter for shadow sample width */
-	public void setShadowSampleWidth(int width)
+	/**
+	 * Gets the SSAO sample radius (in pixels).
+	 */
+	public float getSSAORadius()
 	{
-		mShadowSampleWidth = width;
+		return mSampleRadius;
 	}
 	
-	public int getShadowSampleWidth()
+	/**
+	 * This method should populate mSampleRays with 
+	 */
+	public void createNewSSAORays(int numRays)
 	{
-		return mShadowSampleWidth;
+		// TODO PA4: Generate numRays random normalized vectors.
+		Random rand = new Random();
+		mSampleRays = new Vector3f[20];
+		for(int i = 0; i < 20; i++) {
+			double u = rand.nextDouble() *  2.0 - 1.0;
+			double v = rand.nextDouble() * Math.PI * 2.0;
+			float x = (float)(Math.sqrt(1.0 - Math.pow(u, 2)) * Math.cos(v));
+			float y = (float)(Math.sqrt(1.0 - Math.pow(u, 2)) * Math.sin(v));
+			float z = (float)(Math.abs(u));
+			mSampleRays[i] = new Vector3f(x, y, z);
+		}
 	}
 	
-	/** Getter and setter for the light width */
-	public void setLightWidth(int width)
+	/**
+	 * Returns the current number of sample rays.
+	 */
+	public int getSSAORayCount() {
+		return (mSampleRays == null) ? 0 : mSampleRays.length;
+	}
+	
+	/**
+	 * Returns the maximum number of sample rays supported by the SSAO shader.
+	 */
+	public int getMaxSSAORays()
 	{
-		mLightWidth = width;
+		return mMaxSSAORays;
 	}
-	
-	public int getLightWidth()
-	{
-		return mLightWidth;
-	}
-	
 	
 	/**
 	 * Performs one-time initialization of OpenGL state and shaders used by this renderer.
@@ -934,8 +932,8 @@ public class Renderer
 			gl.glUniform1i(mUberShader.getUniformLocation(gl, "MaterialParams1Buffer"), 2);
 			gl.glUniform1i(mUberShader.getUniformLocation(gl, "MaterialParams2Buffer"), 3);
 			gl.glUniform1i(mUberShader.getUniformLocation(gl, "SilhouetteBuffer"), 4);
-			gl.glUniform3f(mUberShader.getUniformLocation(gl, "SkyColor"), 0.1f, 0.1f, 0.1f);
-			gl.glUniform1i(mUberShader.getUniformLocation(gl, "ShadowMap"), mShadowTextureLocation);
+			gl.glUniform1i(mUberShader.getUniformLocation(gl, "SSAOBuffer"), 5);
+			gl.glUniform3f(mUberShader.getUniformLocation(gl, "SkyColor"), 0.3f, 0.3f, 0.3f);
 			mUberShader.unbind(gl);			
 			
 			/* Get locations of the lighting uniforms, since these will have to be updated every frame. */
@@ -944,45 +942,12 @@ public class Renderer
 			mLightAttenuationsUniformLocation = mUberShader.getUniformLocation(gl, "LightAttenuations");
 			mNumLightsUniformLocation = mUberShader.getUniformLocation(gl, "NumLights");
 			mEnableToonShadingUniformLocation = mUberShader.getUniformLocation(gl, "EnableToonShading");
-			
-			/* Shadow map uniforms */
-			mHasShadowMapsUniformLocation = mUberShader.getUniformLocation(gl, "HasShadowMaps");
-			mLightMatrixUniformLocation = mUberShader.getUniformLocation(gl, "LightMatrix");
-			mInverseViewMatrixUniformLocation = mUberShader.getUniformLocation(gl, "InverseViewMatrix");
-			mBiasUniformLocation = mUberShader.getUniformLocation(gl, "bias");
-			mShadowModeUniformLocation = mUberShader.getUniformLocation(gl, "ShadowMode");
-			mShadowMapWidthUniformLocation = mUberShader.getUniformLocation(gl, "ShadowMapWidth");
-			mShadowMapHeightUniformLocation = mUberShader.getUniformLocation(gl, "ShadowMapHeight");
-			mShadowSampleWidthUniformLocation = mUberShader.getUniformLocation(gl, "ShadowSampleWidth");
-			mLightWidthUniformLocation = mUberShader.getUniformLocation(gl, "LightWidth");
+			mEnableSSAOUniformLocation = mUberShader.getUniformLocation(gl, "EnableSSAO");
 			
 			/* Get the maximum number of lights the shader supports. */
-			int count[] = new int[1];
-			int maxLen[] = new int[1];
+			mMaxLightsInUberShader = mUberShader.getUniformArraySize(gl, "LightPositions");
 			
-			/* Start by figuring out how many uniforms there are and what the name buffer size should be. */
-		    gl.glGetProgramiv(mUberShader.getHandle(), GL2.GL_ACTIVE_UNIFORMS, count, 0);
-		    gl.glGetProgramiv(mUberShader.getHandle(), GL2.GL_ACTIVE_UNIFORM_MAX_LENGTH, maxLen, 0);
 		    
-		    int size[] = new int[1];
-		    int type[] = new int[1];
-		    int used[] = new int[1];
-			byte name[] = new byte[maxLen[0]];
-
-			/* Loop over the uniforms until we find "LightPositions" and grab its size. */
-		    for(int i = 0; i < count[0]; ++i)
-		    {
-		    	/* We provide arrays for all fields (even if we don't use them) to prevent crashes. */
-		    	gl.glGetActiveUniform(mUberShader.getHandle(), i, maxLen[0], used, 0, size, 0, type, 0, name, 0);
-		    	
-		    	String str = new String(name, 0, used[0]);
-		    	if(str.equals("LightPositions"))
-		    	{
-		    		mMaxLightsInUberShader = size[0];
-		    		break;
-		    	}
-		    }
-			
 			/* Load the silhouette (edge-detection) shader. */
 			mSilhouetteShader = new ShaderProgram(gl, "shaders/silhouette");
 
@@ -991,12 +956,14 @@ public class Renderer
 			gl.glUniform1i(mSilhouetteShader.getUniformLocation(gl, "PositionBuffer"), 1);
 			mSilhouetteShader.unbind(gl);
 			
+			
 			/* Load the bloom shader. */
 			mBloomShader = new ShaderProgram(gl, "shaders/bloom");
 			
 			mBloomShader.bind(gl);
 			gl.glUniform1i(mBloomShader.getUniformLocation(gl, "FinalSceneBuffer"), 0);
 			mBloomShader.unbind(gl);
+			
 			
 			/* Load the visualization shader. */
 			mVisShader = new ShaderProgram(gl, "shaders/visualize");
@@ -1008,6 +975,28 @@ public class Renderer
 			gl.glUniform1i(mVisShader.getUniformLocation(gl, "MaterialParams2Buffer"), 3);
 			mVisShader.unbind(gl);
 			
+			
+			/* Load the SSAO shader. */
+			mSSAOShader = new ShaderProgram(gl, "shaders/ssao");
+			
+			mSSAOShader.bind(gl);
+			gl.glUniform1i(mSSAOShader.getUniformLocation(gl, "DiffuseBuffer"), 0);
+			gl.glUniform1i(mSSAOShader.getUniformLocation(gl, "PositionBuffer"), 1);
+			mSSAOShader.unbind(gl);
+			
+			mNumRaysUniformLocation = mSSAOShader.getUniformLocation(gl, "NumRays");
+			mSampleRaysUniformLocation = mSSAOShader.getUniformLocation(gl, "SampleRays");
+			mSampleRadiusUniformLocation = mSSAOShader.getUniformLocation(gl, "SampleRadius");
+			mProjectionMatrixUniformLocation = mSSAOShader.getUniformLocation(gl, "ProjectionMatrix");
+			mScreenSizeUniformLocation = mSSAOShader.getUniformLocation(gl, "ScreenSize");
+			
+			/* Query the max number of sample rays. */
+		    mMaxSSAORays = mSSAOShader.getUniformArraySize(gl, "SampleRays");
+		    
+		    /* Start with half of the max number of rays. */
+		    createNewSSAORays(mMaxSSAORays / 2);
+			
+		    
 			/* Load the material used to render mesh edges (e.g. creases for subdivs). */
 			mWireframeMaterial = new UnshadedMaterial(new Color3f(0.8f, 0.8f, 0.8f));
 			mWireframeMarkedEdgeMaterial = new UnshadedMaterial(new Color3f(1.0f, 0.0f, 1.0f));
@@ -1043,14 +1032,12 @@ public class Renderer
 		if (mGBufferFBO != null)
 		{
 			mGBufferFBO.releaseGPUResources(gl);
-			mShadowMapFBO.releaseGPUResources(gl);
 		}
 		
 		/* Make a new gbuffer with the new size. */
 		try
 		{
 			mGBufferFBO = new FramebufferObject(gl, Format.RGBA, Datatype.FLOAT16, width, height, GBuffer_Count, true, true);
-			mShadowMapFBO = new FramebufferObject(gl, Format.RGBA, Datatype.FLOAT16, width, height, GBuffer_Count, true, false);
 		}
 		catch (OpenGLException err)
 		{
@@ -1070,6 +1057,5 @@ public class Renderer
 		mSilhouetteShader.releaseGPUResources(gl);
 		mBloomShader.releaseGPUResources(gl);
 		mVisShader.releaseGPUResources(gl);
-		mShadowMapFBO.releaseGPUResources(gl);
 	}
 }
