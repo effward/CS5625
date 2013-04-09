@@ -882,8 +882,8 @@ public class Renderer
 	{
 		// TODO PA4: Generate numRays random normalized vectors.
 		Random rand = new Random();
-		mSampleRays = new Vector3f[20];
-		for(int i = 0; i < 20; i++) {
+		mSampleRays = new Vector3f[numRays];
+		for(int i = 0; i < numRays; i++) {
 			double u = rand.nextDouble() *  2.0 - 1.0;
 			double v = rand.nextDouble() * Math.PI * 2.0;
 			float x = (float)(Math.sqrt(1.0 - Math.pow(u, 2)) * Math.cos(v));
