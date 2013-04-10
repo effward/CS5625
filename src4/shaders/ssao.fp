@@ -31,5 +31,5 @@ vec3 decode(vec2 v)
 void main()
 {
 	// TODO PA4: Implement SSAO. Your output color should be grayscale where white is unobscured and black is fully obscured.
-	gl_FragColor = vec4(1.0);
+	gl_FragColor = texture2D(DiffuseBuffer, gl_FragCoord.xy).xyz;
 }
