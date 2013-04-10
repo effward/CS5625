@@ -3,6 +3,7 @@ package cs5625.deferred.rendering;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
@@ -880,9 +881,15 @@ public class Renderer
 	public void createNewSSAORays(int numRays)
 	{
 		// TODO PA4: Generate numRays random normalized vectors.
+		Random rand = new Random();
 		mSampleRays = new Vector3f[numRays];
 		for(int i = 0; i < numRays; i++) {
-			mSampleRays[i] = new Vector3f();
+			double u = rand.nextDouble() *  2.0 - 1.0;
+			double v = rand.nextDouble() * Math.PI * 2.0;
+			float x = (float)(Math.sqrt(1.0 - Math.pow(u, 2)) * Math.cos(v));
+			float y = (float)(Math.sqrt(1.0 - Math.pow(u, 2)) * Math.sin(v));
+			float z = (float)(Math.abs(u));
+			mSampleRays[i] = new Vector3f(x, y, z);
 		}
 	}
 	

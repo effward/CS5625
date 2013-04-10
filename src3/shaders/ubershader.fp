@@ -76,9 +76,19 @@ float DepthToLinear(float value)
 
 /** Returns a binary value for if this location is shadowed. 0 = shadowed, 1 = not shadowed.
  */
+<<<<<<< HEAD
+float getShadowVal(vec4 shadowCoord, vec2 offset) 
+{
+	//float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy * 0.5 + vec2(0.5, 0.5)));
+	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy + offset));
+	return (shadowCoord.z > depth + bias ? 0.0 : 1.0);
+	
+	//return (DepthToLinear(shadowCoord.z) < depth - 0.1 + bias ? 1.0 : 0.0);
+=======
 float getShadowVal(vec4 shadowCoord, vec2 offset) {
 	float depth = DepthToLinear(texture2D(ShadowMap, shadowCoord.xy + offset).x);
 	return (DepthToLinear(shadowCoord.z) < depth + bias ? 1.0 : 0.0);
+>>>>>>> 2a52363278c863b79543e1af0511b8573148263e
 }
 
 /** Calculates regular shadow map algorithm shadow strength
