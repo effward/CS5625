@@ -7,7 +7,7 @@ import java.util.ArrayList;
  * 
  * Holds the per polygon data as part of our edgeDS 
  * 
- * It has the list of vertices that define this polygon, and a list of edges that define it's boundary.
+ * It has the list of vertices that define this polygon, and a list of edges that define its boundary.
  * 
  * Written for Cornell CS 5625 (Interactive Computer Graphics).
  * Copyright (c) 2012, Computer Science Department, Cornell University.

@@ -46,13 +46,13 @@ import cs5625.deferred.scenegraph.Trimesh;
  */
 
 public class EdgeDS {
-	//map from vertexID to (it's attributes, it's connectivity)
+	//map from vertexID to (its attributes, its connectivity)
 	private TreeMap<Integer,VertexData> vertexMap;
 	//map from edgeID to pair of vertices
 	private TreeMap<Integer,EdgeData> edgeMap;
 	//map from triangle ID to triangle data
 	private TreeMap<Integer,PolygonData> polygonMap;
-	//map from vertexID to it's attributes, for new vertices only
+	//map from vertexID to its attributes, for new vertices only
 	private TreeMap<Integer,VertexAttributeData> newVertexMap;
 	//map from edgeID to crease info 
 	private TreeSet<Integer> creaseSet;
@@ -276,7 +276,7 @@ public class EdgeDS {
 			//get the two vertexIDs
 			int v0 = creaseData.get(2 * i + 0);
 			int v1 = creaseData.get(2 * i + 1);
-			//get it's corresponding edgeID
+			//get its corresponding edgeID
 			int edgeID = this.getEdgeBetweenVertices(v0, v1);
 			this.creaseSet.add(edgeID);
 		}
