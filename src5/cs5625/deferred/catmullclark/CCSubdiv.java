@@ -79,7 +79,7 @@ public class CCSubdiv {
 			Point2f v2t = edgeDS.getVertexData(ed.getVertex1()).mData.getTexCoord();
 			
 			if (edgeDS.isCreaseEdge(i)) {
-				//Average the two end verts of the edge
+				//It's a  crease, so just average the two end verts of the edge
 				Vert point = new Vert(
 					(v1.x + v2.x) * 0.5f,
 					(v1.y + v2.y) * 0.5f,
@@ -89,12 +89,13 @@ public class CCSubdiv {
 				);
 				verts.add(point);
 				
+				//Keep track of creases for later when deciding on even vert modification rule.
 				verts.get(ed.getVertex0()).creaseVerts.add(verts.get(ed.getVertex1()));
 				verts.get(ed.getVertex1()).creaseVerts.add(verts.get(ed.getVertex0()));
 			}
 				
 			else {
-				//need to find the other four verts on the two adjacent polygons
+				//Not a crease, so need to find the other verts on the two adjacent polygons
 				
 				ArrayList<Integer> leftEdges = edgeDS.getOtherEdgesOfLeftFace(i);
 				ArrayList<Integer> rightEdges = edgeDS.getOtherEdgesOfRightFace(i);
@@ -111,12 +112,15 @@ public class CCSubdiv {
 					verts.add(point);
 				}
 				else {
+					//Three non-this edges per polygon, so proper quads. Average properly.
 					PolygonData pd1 = edgeDS.getPolygonData(ed.getPolys().get(0));
 					PolygonData pd2 = edgeDS.getPolygonData(ed.getPolys().get(1));
 					
 					Point3f pos = new Point3f();
 					Point2f tex = new Point2f();
 					Point3f v;
+					
+					//Put in the 1/16-weighted verts...
 					for (Integer j: pd1.getAllVertices()) {
 						if (j != ed.getVertex0() && j != ed.getVertex1()) {
 							v = (Point3f)edgeDS.getVertexData(j).mData.getPosition().clone();
@@ -133,11 +137,13 @@ public class CCSubdiv {
 						}
 					}
 					
+					//And put in the 3/8-weighted verts...
 					v = new Point3f(v1);
 					v.add(v2);
 					v.scale(0.375f);
 					pos.add(v);
 					
+					//And also do simple texture average along edges.
 					tex.add(v1t);
 					tex.add(v2t);
 					tex.scale(0.5f);
@@ -150,6 +156,7 @@ public class CCSubdiv {
 			
 			ed.setVertexIDNew(verts.size() - 1);
 			
+			//Save the new odd edge verts to the old even vert for later reference.
 			verts.get(ed.getVertex0()).oddEdgeVerts.add(verts.get(verts.size() - 1));
 			verts.get(ed.getVertex1()).oddEdgeVerts.add(verts.get(verts.size() - 1));
 		}
@@ -221,7 +228,8 @@ public class CCSubdiv {
 			int v6 = edgeDS.getEdgeData(pded.get(2)).getNewVertexID();
 			int v8 = edgeDS.getEdgeData(pded.get(3)).getNewVertexID();
 			
-			int v9 = pd.getNewFaceVertexID(); //odd face vertex
+			//odd face vertex
+			int v9 = pd.getNewFaceVertexID(); 
 			
 			//add new polys
 			polys.add(new Poly(v1, v2, v9, v8));
